@@ -27,7 +27,7 @@ By the end of this hands-on exercise, we should acquire the following competenci
 -   performing Exploratory Data Analysis (EDA) by using appropriate functions from `ggplot2` package.
 
 ::: callout-note
-##Note
+## Note
 
 Read the reference guide of each function, especially the input data requirements, syntaxt and argument option before using them.
 :::
@@ -150,7 +150,7 @@ head(mpsz, n=5)
 ```
 
 ::: callout-note
-##Note
+## Note
 
 One of the useful argument of `head()` is it allows user to select the numbers of record to display (i.e. the n argument).
 :::
