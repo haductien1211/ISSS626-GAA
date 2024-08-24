@@ -136,10 +136,6 @@ mpsz_pop2020 <- left_join(mpsz,
 -   `left_join()` of `dplyr` package is used with mpsz simple feature data frame as the left data table is to ensure that the output will be a simple features data frame.
 :::
 
-```{r}
-write_rds(mpsz_pop2020, "data/rds/mpszpop2020.rds")
-```
-
 # 4. Choropleth Mapping Geospatial Data Using tmap
 
 Choropleth mapping involves the symbolisation of enumeration units, such as countries, provinces, states, counties or census units, using area patterns or graduated colors. For example, a social scientist may need to use a choropleth map to portray the spatial distribution of aged population of Singapore by Master Plan 2014 Subzone Boundary.
@@ -208,7 +204,7 @@ tm_shape(mpsz_pop2020) +
 
 To draw a choropleth map showing the geographical distribution of a selected variable by planning subzone, we just need to assign the target variable such as Dependency to `tm_polygons()`.
 
-```{r}
+```{r, fig.width = 15, fig.height = 8, dpi = 200}
 tm_shape(mpsz_pop2020)+
   tm_polygons("DEPENDENCY")
 ```
