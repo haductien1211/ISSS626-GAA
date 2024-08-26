@@ -85,3 +85,20 @@ mpsz19_esri = st_read(dsn = "data/geospatial",
   st_transform(crs = 3414)
 ```
 :::
+
+
+Now use **Singapore Residents by Planning Area / Subzone, Age Group, Sex and Type of Dwelling, June 2023**
+
+```{r}
+popdata <- read_csv("data/respopagesextod2023.csv")
+```
+
+```{r}
+
+popdata2023 <- popdata %>%
+  group_by(PA, SZ, AG) %>%
+  summarise(`POP` = sum(`Pop`)) %>%
+  ungroup()%>%
+  pivot_wider(names_from=AG, 
+              values_from=POP)
+```    
