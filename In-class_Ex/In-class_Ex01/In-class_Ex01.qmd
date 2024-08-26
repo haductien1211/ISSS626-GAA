@@ -7,5 +7,81 @@ execute:
   eval: true
   echo: true
   warning: false
+  message: false
   freeze: true
 ---
+
+# 1. Getting started
+
+Loading the R packages
+
+:::panel-tabset
+## The task
+
+Loading the following R packages `tidyverse`, `sf`, `tmap`, `ggstatsplot`
+
+## The Code
+```{r}
+pacman::p_load(tidyverse, sf, tmap, ggstatsplot)
+```
+:::
+
+# 2. Reading the files
+
+:::panel-tabset
+## The task
+Reading the files **Master Plan 2014 Planning Area Boundary (Web) (SHP)** and **Master Plan 2014 Planning Area Boundary (Web) (KML)**
+
+## The Code 
+
+**Code to import ESRI**
+```{r}
+mpsz_esri = st_read(dsn = "data/geospatial",
+                    layer = "MP14_SUBZONE_WEB_PL")
+```
+**Code to import KML**
+```{r}
+#| eval: false
+mpsz_kml = st_read("data/geospatial/MasterPlan2014PlanningAreaBoundaryWebKML.kml")
+```
+:::
+
+`MasterPlan2014PlanningAreaBoundaryWebKML.kml` file is corrupted hence we would not be able to load this file
+
+Let us create a new kml file via **Master Plan 2014 Planning Area Boundary (Web) (SHP)**
+
+:::panel-tabset
+
+## The task
+
+Create a new kml file via `mpsz_esri`
+
+## The code
+```{r}
+st_write(mpsz_esri,"data/MP14_SUBZONE_WEB_PL.kml",delete_dsn = TRUE)
+```
+:::
+
+
+Working with Subzone Boundary 2019 data, using **Master Plan 2019 Subzone Boundary (No Sea) (KML)** and **SHP** files
+
+:::panel-tabset
+## The task
+Import **Master Plan 2019 Subzone Boundary (No Sea) (KML)** data
+
+## The code
+
+**KML file**
+
+```{r}
+mpsz19_kml = st_read("data/geospatial/MasterPlan2019SubzoneBoundaryNoSeaKML.kml")
+```
+
+**SHP file**
+
+```{r}
+mpsz19_esri = st_read(dsn = "data/geospatial",
+                    layer = "MPSZ-2019") %>%
+  st_transform(crs = 3414)
+```
+:::
