@@ -110,7 +110,7 @@ Notice that all the geospatial layers are within the same map extend. This shows
 
 Alternatively, we can also prepare a pin map by using the code chunk below.
 
-```{r, fig.width = 15, fig.height = 9, dpi = 100}
+```{r}
 tmap_mode('view')
 tm_shape(childcare_sf) +
   tm_dots()
