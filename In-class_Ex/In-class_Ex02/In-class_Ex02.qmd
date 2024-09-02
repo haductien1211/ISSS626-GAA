@@ -67,3 +67,26 @@ set.seed(1234)
 ```
 
 Use Edge correction method of spatstat to reduce biases of spatial graphs
+
+# 4. Take-home Exercise 1
+
+The study area is Bangkok Metropolitan Region
+
+:::callout-tip
+
+The WGS84/UTM zone 47N the EPSG code is 32647
+
+:::
+
+The data Thai traffic accident 2019 - 2022
+
+Use the code below to import the data
+
+```{r}
+accident_data <- read_csv("data/thai_road_accident_2019_2022.csv")%>%
+  filter(!is.na(longitude) & longitude != "",
+         !is.na(latitude) & latitude != "") %>%
+  st_as_sf(coords = c("longitude", "latitude"), 
+           crs = 4326) %>%
+  st_transform(crs = 32647)
+```

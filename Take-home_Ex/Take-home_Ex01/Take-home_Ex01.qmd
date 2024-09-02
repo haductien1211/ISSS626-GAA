@@ -9,3 +9,16 @@ execute:
   warning: false
   freeze: true
 ---
+
+```{r}
+pacman::p_load(tidyverse, sf)
+```
+
+```{r}
+accident_data <- read_csv("data/nongeo/thai_road_accident_2019_2022.csv") %>%
+  filter(!is.na(longitude) & longitude != "",
+         !is.na(latitude) & latitude != "") %>%
+  st_as_sf(coords = c("longitude", "latitude"), 
+           crs = 4326) %>%
+  st_transform(crs = 32647)
+```
