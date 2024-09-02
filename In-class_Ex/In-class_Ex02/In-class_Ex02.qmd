@@ -12,3 +12,58 @@ execute:
 ---
 
 # 1. Getting started
+
+```{r}
+pacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)
+```
+
+# 2. Importing the spatial data
+
+```{r}
+childcare_sf <- st_read("data/child-care-services-geojson.geojson") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+sg_sf <- st_read(dsn = "data", layer="CostalOutline")%>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+mpsz_sf <- st_read(dsn = "data", 
+                layer = "MP14_SUBZONE_WEB_PL")%>%
+  st_transform(crs = 3414)
+```
+# 3. Some insights and guidance
+
+Working with st_union()
+
+The code chunk below, st_union() is used to derive the coastal outline of sf tibble data.frame
+
+```{r}
+sg_sf <- mpsz_sf %>%
+  st_union()
+```
+
+sg_sf will look similar to the code below
+
+```{r}
+plot(sg_sf)
+```
+
+Since maptools expired, we could use the code below instead of `as.SpatialGridDataFrame.im()`
+
+```{r, fig.width = 12, fig.height = 9, dpi = 100}
+#| eval: false
+gridded_kde_childcareSG_bw <- as(kde_childcareSG.bw, "SpatialGridDataFrame")
+plot(gridded_kde_childcareSG_bw)
+spplot(gridded_kde_childcareSG_bw)
+```
+
+For Monte Carlo simulation use
+
+```{r}
+set.seed(1234)
+```
+
+Use Edge correction method of spatstat to reduce biases of spatial graphs

@@ -1,0 +1,17 @@
+{
+  "hash": "4966873caed1878cdc5d9a5521ab5801",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"In-class Exercise 2\"\nauthor: \"Ha Duc Tien\"\ndate: \"September 02, 2024\"\ndate-modified: \"last-modified\"\nexecute: \n  eval: true\n  echo: true\n  warning: false\n  message: false\n  freeze: true\n---\n\n\n# 1. Getting started\n\n\n::: {.cell}\n\n```{.r .cell-code}\npacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)\n```\n:::\n\n\n# 2. Importing the spatial data\n\n\n::: {.cell}\n\n```{.r .cell-code}\nchildcare_sf <- st_read(\"data/child-care-services-geojson.geojson\") %>%\n  st_transform(crs = 3414)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nReading layer `child-care-services-geojson' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data\\child-care-services-geojson.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 1545 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6824 ymin: 1.248403 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n```\n\n\n:::\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nsg_sf <- st_read(dsn = \"data\", layer=\"CostalOutline\")%>%\n  st_transform(crs = 3414)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nReading layer `CostalOutline' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 60 features and 4 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 2663.926 ymin: 16357.98 xmax: 56047.79 ymax: 50244.03\nProjected CRS: SVY21\n```\n\n\n:::\n:::\n\n::: {.cell}\n\n```{.r .cell-code}\nmpsz_sf <- st_read(dsn = \"data\", \n                layer = \"MP14_SUBZONE_WEB_PL\")%>%\n  st_transform(crs = 3414)\n```\n\n::: {.cell-output .cell-output-stdout}\n\n```\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n```\n\n\n:::\n:::\n\n# 3. Some insights and guidance\n\nWorking with st_union()\n\nThe code chunk below, st_union() is used to derive the coastal outline of sf tibble data.frame\n\n\n::: {.cell}\n\n```{.r .cell-code}\nsg_sf <- mpsz_sf %>%\n  st_union()\n```\n:::\n\n\nsg_sf will look similar to the code below\n\n\n::: {.cell}\n\n```{.r .cell-code}\nplot(sg_sf)\n```\n\n::: {.cell-output-display}\n![](In-class_Ex02_files/figure-html/unnamed-chunk-6-1.png){width=672}\n:::\n:::\n\n\nSince maptools expired, we could use the code below instead of `as.SpatialGridDataFrame.im()`\n\n\n::: {.cell}\n\n```{.r .cell-code}\ngridded_kde_childcareSG_bw <- as(kde_childcareSG.bw, \"SpatialGridDataFrame\")\nplot(gridded_kde_childcareSG_bw)\nspplot(gridded_kde_childcareSG_bw)\n```\n:::\n\n\nFor Monte Carlo simulation use\n\n\n::: {.cell}\n\n```{.r .cell-code}\nset.seed(1234)\n```\n:::\n\n\nUse Edge correction method of spatstat to reduce biases of spatial graphs",
+    "supporting": [
+      "In-class_Ex02_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
