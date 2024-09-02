@@ -59,7 +59,8 @@ childcare <- st_read(dsn="data/geospatial",
 
 We can examine the structure of the output simple features data tables in RStudio. Alternative, code chunk below can be used to print the content of network and childcare simple features objects by using the code chunk below.
 
-::: table-tabset
+:::panel-tabset
+
 ## Childcare
 
 ```{r}
@@ -71,6 +72,7 @@ childcare
 ```{r}
 network
 ```
+
 :::
 
 `spNetwork` package is expecting the geospatial data contains complete CRS information
