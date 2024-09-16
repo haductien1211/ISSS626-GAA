@@ -1,7 +1,7 @@
 ---
-title: "In-class Exercise 3"
+title: "In-class Exercise 4"
 author: "Ha Duc Tien"
-date: "September 09, 2024"
+date: "September 16, 2024"
 date-modified: "last-modified"
 execute: 
   eval: true
@@ -12,3 +12,153 @@ execute:
 ---
 
 # 1. Getting started
+
+
+```{r}
+pacman::p_load(sf, ggstatsplot, knitr, tmap, tidyverse, GWmodel)
+```
+
+# 2. Preparing the data
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+Ideally, it is best to use projection
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+
+```{r}
+hunan <- left_join(hunan,hunan2012) %>%
+  select(1:3, 7, 15, 16, 31, 32)
+```
+```{r}
+hunan_sp <- hunan %>%
+  as_Spatial()
+```
+
+# 3. Determine adaptive bandwidth
+
+Cross Validation
+
+```{r}
+bw_CV <- bw.gwr(GDPPC ~ 1,
+                data = hunan_sp,
+                approach = "CV",
+                adaptive = TRUE,
+                kernel = "bisquare",
+                longlat = T)
+```
+
+-   GDPPC ~ 1 = dependent ~ independent variables 
+-   `approach` = "CV" or Cross Validation
+-   `adaptive` = TRUE mean we are using adaptive bandwidth
+-   `kernel` 
+-   `longlat` = T, decimal degree great circle distance will be calculated
+```{r}
+bw_CV
+```
+
+The number of optimum neighbors is 22
+
+
+AIC
+
+```{r}
+bw_AIC <- bw.gwr(GDPPC ~ 1,
+                data = hunan_sp,
+                approach = "AIC",
+                adaptive = TRUE,
+                kernel = "bisquare",
+                longlat = T)
+```
+
+```{r}
+bw_AIC
+```
+
+The number of optimum neighbors is still 22
+
+What if `adaptive` = TRUE ?
+
+```{r}
+bw_CV_nonadaptive <- bw.gwr(GDPPC ~ 1,
+                            data = hunan_sp,
+                            approach = "CV",
+                            adaptive = FALSE,
+                            kernel = "bisquare",
+                            longlat = T)
+```
+
+```{r}
+bw_CV_nonadaptive
+```
+
+
+```{r}
+bw_AIC_nonadaptive <- bw.gwr(GDPPC ~ 1,
+                            data = hunan_sp,
+                            approach = "AIC",
+                            adaptive = FALSE,
+                            kernel = "bisquare",
+                            longlat = T)
+```
+
+```{r}
+bw_AIC_nonadaptive
+```
+
+Using fix distance bandwith the optimum number of neighbors changed
+
+
+## 3.1 Computing geographically weighted summary statistics
+
+```{r}
+gwstat <- gwss(data = hunan_sp,
+               vars = "GDPPC",
+               bw = bw_AIC,
+               kernel = "bisquare",
+               adaptive = TRUE,
+               longlat = T)
+```
+
+
+
+## 3.2 Preparing the output data 
+
+
+Code chunk below to extract SDF data table from gwss object output from `gwss()` and converted to dataframe using `as.data.frame()`
+
+```{r}
+gwstat_df <- as.data.frame(gwstat$SDF)
+```
+
+Next use `cbind()` to append the dataframe to *hunan* dataframe. Be mindful that `cbind()` blindly append the data 
+
+```{r}
+hunan_gstat <- cbind(hunan, gwstat_df)
+```
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+tm_shape(hunan_gstat) +
+  tm_fill("GDPPC_LM",
+          n = 5,
+          style = 'quantile') +
+  tm_borders(alpha = 1) +
+  tm_layout(main.title = "Distribution of geographically weighted mean",
+            main.title.position = "center",
+            main.title.size = 2.0,
+            legend.text.size = 1.2,
+            legend.height = 1.5,
+            legend.width = 1.5,
+            frame = TRUE)
+```
+
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+
+```
