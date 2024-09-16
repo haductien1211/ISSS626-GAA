@@ -1,0 +1,14 @@
+---
+title: "In-class Exercise 3"
+author: "Ha Duc Tien"
+date: "September 09, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+---
+
+# 1. Getting started

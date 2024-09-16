@@ -1,0 +1,14 @@
+---
+title: "Hands-on Exercise 5.1 Global Measures of Spatial Autocorrelation"
+author: "Ha Duc Tien"
+date: "September 16, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+---
+
+# 1. Overview
