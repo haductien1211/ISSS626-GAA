@@ -249,6 +249,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#performing-complete-spatial-randomness-test-using-f-function" id="toc-performing-complete-spatial-randomness-test-using-f-function" class="nav-link" data-scroll-target="#performing-complete-spatial-randomness-test-using-f-function">Performing Complete Spatial Randomness Test Using F-Function</a></li>
   </ul></li>
   </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">5. Conclusion</a></li>
   </ul>
 </nav>
 </nav>
@@ -285,7 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 22, 2024</p>
+      <p class="date-modified">September 23, 2024</p>
     </div>
   </div>
     
@@ -611,7 +612,7 @@ Note
 </section>
 <section id="creating-owin-object" class="level3">
 <h3 class="anchored" data-anchor-id="creating-owin-object">Creating owin object</h3>
-<p>The code chunk below is used to covert sg SpatialPolygon object into owin object of spatstat.</p>
+<p>The code chunk below is used to covert the SpatialPolygon object into owin object of <code>spatstat</code></p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>THSAB_owin <span class="ot">&lt;-</span> <span class="fu">as.owin</span>(THSAB_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -623,7 +624,7 @@ Note
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>accident_data_owin_ppp <span class="ot">&lt;-</span> accident_data_ppp[THSAB_owin]</span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>accident_data_owin_ppp.km <span class="ot">&lt;-</span> <span class="fu">rescale.ppp</span>(accident_data_owin_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Now, we can re-run density() using the resale data set and plot the output kde map. In this case I’ll be using bw.diggle() since it seems to be working best</p>
+<p>Now, we can run <code>density()</code> using the resale data set and plot the output kde map. In this case I’ll be using bw.diggle() since it seems to be working best</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>kde_accident_data_bw <span class="ot">&lt;-</span> <span class="fu">density</span>(accident_data_owin_ppp.km,</span>
 <span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
@@ -660,7 +661,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Both graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period</p>
+<p>Both graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period. The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon</p>
 </div>
 </div>
 </section>
@@ -823,10 +824,17 @@ Note
 <p>From the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed</p>
 </div>
 </div>
-
-
 </section>
 </section>
+</section>
+<section id="conclusion" class="level1">
+<h1>5. Conclusion</h1>
+<p>The above results shown that majority of accidents cases from 2019 to 2022 is actually from Bangkok province itself which does make sense since the concentration of population are probably in this region as well which leads to higher traffics. The initial analysis shown that that accident tends to peak around January April, July, October and December. Interestingly, these period seems to coincide with holidays seasons in Thailand.</p>
+<p>The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon</p>
+<p>The statistical test seems to reject the idea that the accidents are randomly distributed and hence it is likely that there are pattern within these accidents hotspots of which some has been highlighted due to potentially holiday period and concentration of traffics</p>
+<p>Further investigation including different time of date and the hotspot changes throughout different period, seasons, weather changes should be studied further in this case to gain a more comprehensive understanding of the changes of accidents distributions</p>
+
+
 </section>
 
 </main> <!-- /main -->

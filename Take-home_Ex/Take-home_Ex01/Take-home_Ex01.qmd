@@ -157,6 +157,7 @@ tm_layout(main.title = "Distribution of accidents")
 #   tm_lines()
 ```
 
+
 ```{r fig.height=9, fig.width=12, dpi=100}
 tm_shape(THSAB_sf) +
   tm_polygons() +
@@ -225,7 +226,7 @@ plot(accident_data_ppp)
 
 ### Creating owin object
 
-The code chunk below is used to covert sg SpatialPolygon object into owin object of spatstat.
+The code chunk below is used to covert the SpatialPolygon object into owin object of `spatstat`
 
 ```{r}
 THSAB_owin <- as.owin(THSAB_sf)
@@ -241,7 +242,7 @@ accident_data_owin_ppp <- accident_data_ppp[THSAB_owin]
 accident_data_owin_ppp.km <- rescale.ppp(accident_data_owin_ppp, 1000, "km")
 ```
 
-Now, we can re-run density() using the resale data set and plot the output kde map. In this case I'll be using bw.diggle() since it seems to be working best
+Now, we can run `density()` using the resale data set and plot the output kde map. In this case I'll be using bw.diggle() since it seems to be working best
 
 ```{r fig.height=9, fig.width=12, dpi=100}
 kde_accident_data_bw <- density(accident_data_owin_ppp.km,
@@ -260,7 +261,7 @@ plot(kde_accident_data_adaptive, main = "Adaptive bandwidth")
 
 :::callout-note
 
-Both graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period
+Both graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period. The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon
 
 :::
 
@@ -323,3 +324,14 @@ plot(F_CK.csr)
 From the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed
 
 :::
+
+
+# 5. Conclusion
+
+The above results shown that majority of accidents cases from 2019 to 2022 is actually from Bangkok province itself which does make sense since the concentration of population are probably in this region as well which leads to higher traffics. The initial analysis shown that that accident tends to peak around January April, July, October and December. Interestingly, these period seems to coincide with holidays seasons in Thailand.
+
+The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon
+
+The statistical test seems to reject the idea that the accidents are randomly distributed and hence it is likely that there are pattern within these accidents hotspots of which some has been highlighted due to potentially holiday period and concentration of traffics
+
+Further investigation including different time of date and the hotspot changes throughout different period, seasons, weather changes should be studied further in this case to gain a more comprehensive understanding of the changes of accidents distributions 
