@@ -221,7 +221,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
-    
+    <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#overview-and-objective" id="toc-overview-and-objective" class="nav-link active" data-scroll-target="#overview-and-objective">1. Overview and Objective</a></li>
+  <li><a href="#getting-started" id="toc-getting-started" class="nav-link" data-scroll-target="#getting-started">2. Getting started</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">3. The data</a>
+  <ul class="collapse">
+  <li><a href="#importing-and-wrangling-the-data" id="toc-importing-and-wrangling-the-data" class="nav-link" data-scroll-target="#importing-and-wrangling-the-data">Importing and wrangling the data</a></li>
+  </ul></li>
+  <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis">4. Analysis</a>
+  <ul class="collapse">
+  <li><a href="#quick-analysis" id="toc-quick-analysis" class="nav-link" data-scroll-target="#quick-analysis">Quick analysis</a></li>
+  <li><a href="#kernel-density-estimation" id="toc-kernel-density-estimation" class="nav-link" data-scroll-target="#kernel-density-estimation">Kernel Density Estimation</a></li>
+  </ul></li>
+  </ul>
+</nav>
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
@@ -256,7 +272,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 2, 2024</p>
+      <p class="date-modified">September 22, 2024</p>
     </div>
   </div>
     
@@ -267,19 +283,383 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<section id="overview-and-objective" class="level1">
+<h1>1. Overview and Objective</h1>
+<p>Previous studies have demonstrated the significant potential of Spatial Point Patterns Analysis (SPPA) in exploring and identifying factors influencing road traffic accidents. However, these studies often focus solely on either behavioral or environmental factors, with limited consideration of temporal factors such as season, day of the week, or time of day.</p>
+<ul>
+<li>In view of this, I am tasked to discover factors affecting road traffic accidents in the Bangkok Metropolitan Region BMR by employing both spatial spatio-temporal point patterns analysis methods.</li>
+</ul>
+<p>The specific objectives of this take-home exercise are as follows:</p>
+<ul>
+<li>To visualize the spatio-temporal dynamics of road traffic accidents in BMR using appropriate statistical graphics and geovisualization methods.</li>
+<li>To conduct detailed spatial analysis of road traffic accidents using appropriate Network Spatial Point Patterns Analysis methods.</li>
+<li>To conduct detailed spatio-temporal analysis of road traffic accidents using appropriate Temporal Network Spatial Point Patterns Analysis methods.</li>
+</ul>
+</section>
+<section id="getting-started" class="level1">
+<h1>2. Getting started</h1>
+<p>In this exercise, the below R packages will be used. They are:</p>
+<ul>
+<li><a href="https://r-spatial.github.io/sf/"><code>sf</code></a> for importing, managing, and processing geospatial data, and</li>
+<li><a href="https://www.tidyverse.org/"><code>tidyverse</code></a> for performing data science tasks such as importing, wrangling and visualising data.</li>
+<li><a href="https://spatstat.org/"><code>spatstat</code></a>, which has a wide range of useful functions for point pattern analysis.</li>
+<li><a href="https://cran.r-project.org/web/packages/raster/"><code>raster</code></a> which reads, writes, manipulates, analyses and model of gridded spatial data</li>
+<li><a href="https://cran.r-project.org/web/packages/maptools/index.html"><code>maptools</code></a> which provides a set of tools for manipulating geographic data.</li>
+<li><a href="https://cran.r-project.org/web/packages/tmap/index.html"><code>tmap</code></a> which provides functions for plotting cartographic quality static point patterns maps or interactive maps by using leaflet API.</li>
+<li><a href="https://cran.r-project.org/web/packages/spNetwork/index.html">spNetwork</a>, which provides functions to perform Spatial Point Patterns Analysis such as kernel density estimation (KDE) and K-function on network. It also can be used to build spatial matrices (‘listw’ objects like in ‘spdep’ package) to conduct any kind of traditional spatial analysis with spatial weights based on reticular distances.</li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(raster, spatstat, tmap, tidyverse, sparr, maptools, spNetwork, sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="the-data" class="level1">
+<h1>3. The data</h1>
+<p>For the purpose of this exercise, three basic data sets must be used, they are:</p>
+<ul>
+<li><p><a href="https://www.kaggle.com/datasets/thaweewatboy/thailand-road-accident-2019-2022">Thailand Road Accident (2019-2022)</a> on Kaggle</p></li>
+<li><p><a href="https://data.humdata.org/dataset/hotosm_tha_roads">Thailand Roads (OpenStreetMap Export)</a> on HDX.</p></li>
+<li><p><a href="https://data.humdata.org/dataset/cod-ab-tha?">Thailand - Subnational Administrative Boundaries</a> on HDX.</p></li>
+</ul>
+<section id="importing-and-wrangling-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="importing-and-wrangling-the-data">Importing and wrangling the data</h2>
+<p>The below code would import the <strong>Thailand Road Accident (2019-2022)</strong>, make changes to the coordinates by filtering out the ones with empty or NA coordinates then filter out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647. This step would create <code>accident_data_sf</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>accident_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/nongeo/thai_road_accident_2019_2022.csv"</span>) <span class="sc">%&gt;%</span></span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>accident_data_sf <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/nongeo/thai_road_accident_2019_2022.csv"</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(longitude) <span class="sc">&amp;</span> longitude <span class="sc">!=</span> <span class="st">""</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>         <span class="sc">!</span><span class="fu">is.na</span>(latitude) <span class="sc">&amp;</span> latitude <span class="sc">!=</span> <span class="st">""</span>) <span class="sc">%&gt;%</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_as_sf</span>(<span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"longitude"</span>, <span class="st">"latitude"</span>), </span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">crs =</span> <span class="dv">4326</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">32647</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(province_en <span class="sc">%in%</span> <span class="fu">list</span>(<span class="st">"Bangkok"</span>, <span class="st">"Nonthaburi"</span>, </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                                           <span class="st">"Nakhon Pathom"</span>, <span class="st">"Pathum Thani"</span>, </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                                           <span class="st">"Samut Prakan"</span>, <span class="st">"Samut Sakhon"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">incident_monthyear</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">format</span>(<span class="fu">as.Date</span>(<span class="st">`</span><span class="at">incident_datetime</span><span class="st">`</span>), <span class="st">"%Y/%m"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">incident_year</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">format</span>(<span class="fu">as.Date</span>(<span class="st">`</span><span class="at">incident_datetime</span><span class="st">`</span>), <span class="st">"%Y"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">32647</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(accident_data_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>sf [12,986 × 19] (S3: sf/tbl_df/tbl/data.frame)
+ $ acc_code                   : num [1:12986] 571882 600001 605043 629691 571887 ...
+ $ incident_datetime          : POSIXct[1:12986], format: "2019-01-01 02:25:00" "2019-01-01 03:00:00" ...
+ $ report_datetime            : POSIXct[1:12986], format: "2019-01-02 17:32:00" "2019-01-05 10:33:00" ...
+ $ province_th                : chr [1:12986] "นครปฐม" "นนทบุรี" "สมุทรปราการ" "กรุงเทพมหานคร" ...
+ $ province_en                : chr [1:12986] "Nakhon Pathom" "Nonthaburi" "Samut Prakan" "Bangkok" ...
+ $ agency                     : chr [1:12986] "department of rural roads" "department of highways" "department of highways" "expressway authority of thailand" ...
+ $ route                      : chr [1:12986] "แยกทางหลวงหมายเลข 4 (กม.ที่ 51+920) - บ้านวัดละมุด" "คลองวัดแดง - บางบัวทอง" "ราษฎร์บูรณะ - พระสมุทรเจดีย์" "บางพลี-สุขสวัสดิ์" ...
+ $ vehicle_type               : chr [1:12986] "motorcycle" "private/passenger car" "private/passenger car" "other" ...
+ $ presumed_cause             : chr [1:12986] "speeding" "speeding" "running red lights/traffic signals" "other" ...
+ $ accident_type              : chr [1:12986] "rollover/fallen on straight road" "rollover/fallen on straight road" "collision at intersection corner" "other" ...
+ $ number_of_vehicles_involved: num [1:12986] 1 1 2 1 1 1 1 1 1 1 ...
+ $ number_of_fatalities       : num [1:12986] 0 0 0 0 0 1 1 0 0 0 ...
+ $ number_of_injuries         : num [1:12986] 2 1 0 1 1 0 0 0 0 1 ...
+ $ weather_condition          : chr [1:12986] "clear" "clear" "clear" "clear" ...
+ $ road_description           : chr [1:12986] "straight road" "straight road" "other" "other" ...
+ $ slope_description          : chr [1:12986] "no slope" "no slope" "other" "other" ...
+ $ geometry                   :sfc_POINT of length 12986; first list element:  'XY' num [1:2] 627012 1533381
+ $ incident_monthyear         : chr [1:12986] "2019/01" "2019/01" "2019/01" "2019/01" ...
+ $ incident_year              : chr [1:12986] "2019" "2019" "2019" "2019" ...
+ - attr(*, "sf_column")= chr "geometry"
+ - attr(*, "agr")= Factor w/ 3 levels "constant","aggregate",..: NA NA NA NA NA NA NA NA NA NA ...
+  ..- attr(*, "names")= chr [1:18] "acc_code" "incident_datetime" "report_datetime" "province_th" ...</code></pre>
+</div>
+</div>
+<p>This part is to import <strong>Thailand Roads (OpenStreetMap Export)</strong> and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create <code>THR_sf</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>THR_sf <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geo"</span>, </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">layer =</span> <span class="st">"hotosm_tha_roads_lines_shp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `hotosm_tha_roads_lines_shp' from data source 
+  `C:\Users\tien_\OneDrive\SMU\haductien1211\ISSS626-GAA\Take-home_Ex\Take-home_Ex01\data\geo' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 2792590 features and 14 fields
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 97.34457 ymin: 5.643645 xmax: 105.6528 ymax: 20.47168
+CRS:           NA</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>THR_sf <span class="ot">&lt;-</span>  <span class="fu">st_set_crs</span>(THR_sf, <span class="dv">32647</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>THR_sf_lines <span class="ot">&lt;-</span> <span class="fu">st_cast</span>(THR_sf, <span class="st">"LINESTRING"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>THR_sf_lines</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 2792591 features and 14 fields
+Geometry type: LINESTRING
+Dimension:     XY
+Bounding box:  xmin: 97.34457 ymin: 5.643645 xmax: 105.6528 ymax: 20.47168
+Projected CRS: WGS 84 / UTM zone 47N
+First 10 features:
+             name               name_en        highway  surface smoothness
+1      ถนนฉลองกรุง    Chalong Krung Road      secondary    paved       &lt;NA&gt;
+2  ซอยฉลองกรุง 1/1 Soi Chalong Krung 1/1    residential     &lt;NA&gt;       &lt;NA&gt;
+3            &lt;NA&gt;                  &lt;NA&gt; secondary_link     &lt;NA&gt;       &lt;NA&gt;
+4            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+5      ถนนฉลองกรุง    Chalong Krung Road      secondary concrete       &lt;NA&gt;
+6            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+7     ถนนเอราวัณ 1         Erawan 1 Road       tertiary     &lt;NA&gt;       &lt;NA&gt;
+8            &lt;NA&gt;                  &lt;NA&gt;           path  unpaved       &lt;NA&gt;
+9            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+10           &lt;NA&gt;                  &lt;NA&gt;    residential     &lt;NA&gt;       &lt;NA&gt;
+   width lanes oneway bridge layer source        name_th     osm_id  osm_type
+1   &lt;NA&gt;  &lt;NA&gt;    yes   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;     ถนนฉลองกรุง 1125681229 ways_line
+2   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; ซอยฉลองกรุง 1/1  594401607 ways_line
+3   &lt;NA&gt;  &lt;NA&gt;    yes   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  472283206 ways_line
+4   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  594401608 ways_line
+5   &lt;NA&gt;     2    yes    yes     1   Bing     ถนนฉลองกรุง  116847248 ways_line
+6   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  317485095 ways_line
+7   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;    ถนนเอราวัณ 1  378672881 ways_line
+8   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;    GPS           &lt;NA&gt; 1238351123 ways_line
+9   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  909942692 ways_line
+10  &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  694824299 ways_line
+                         geometry
+1  LINESTRING (100.7913 13.740...
+2  LINESTRING (100.7882 13.736...
+3  LINESTRING (100.7844 13.732...
+4  LINESTRING (100.7873 13.735...
+5  LINESTRING (100.7831 13.730...
+6  LINESTRING (100.7931 13.746...
+7  LINESTRING (100.6416 14.154...
+8  LINESTRING (98.87378 17.115...
+9  LINESTRING (100.193 13.6944...
+10 LINESTRING (100.1994 13.688...</code></pre>
+</div>
+</div>
+<p>This part is to import <strong>Thailand - Subnational Administrative Boundaries</strong> as well as filtering out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create <code>THSAB_sf</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>THSAB_sf <span class="ot">&lt;-</span> <span class="fu">st_read</span>(<span class="at">dsn =</span> <span class="st">"data/geo"</span>, </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">layer =</span> <span class="st">"tha_admbnda_adm2_rtsd_20220121"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ADM1_EN <span class="sc">%in%</span> <span class="fu">list</span>(<span class="st">"Bangkok"</span>, <span class="st">"Nonthaburi"</span>, <span class="st">"Nakhon Pathom"</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Pathum Thani"</span>, <span class="st">"Samut Prakan"</span>, <span class="st">"Samut Sakhon"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="dv">32647</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `tha_admbnda_adm2_rtsd_20220121' from data source 
+  `C:\Users\tien_\OneDrive\SMU\haductien1211\ISSS626-GAA\Take-home_Ex\Take-home_Ex01\data\geo' 
+  using driver `ESRI Shapefile'
+Simple feature collection with 928 features and 19 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XY
+Bounding box:  xmin: 97.34336 ymin: 5.613038 xmax: 105.637 ymax: 20.46507
+Geodetic CRS:  WGS 84</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="analysis" class="level1">
+<h1>4. Analysis</h1>
+<section id="quick-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="quick-analysis">Quick analysis</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(accident_data_sf) <span class="sc">+</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">x =</span> incident_monthyear), </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">bin =</span> <span class="dv">100</span>, </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color=</span><span class="st">"black"</span>, </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill=</span><span class="st">"light blue"</span>) <span class="sc">+</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Time"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="2400"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(accident_data_sf) <span class="sc">+</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">x =</span> province_en), </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">bin =</span> <span class="dv">48</span>, </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color=</span><span class="st">"black"</span>, </span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill=</span><span class="st">"light blue"</span>) <span class="sc">+</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Province"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="1200"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(THSAB_sf) <span class="sc">+</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(accident_data_sf) <span class="sc">+</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>() <span class="sc">+</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_facets</span>(<span class="at">by =</span> <span class="st">"weather_condition"</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">free.coords =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">free.scales =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">drop.units =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="1200"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#   tm_dots()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(THSAB_sf) <span class="sc">+</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_polygons</span>() <span class="sc">+</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="fu">tm_shape</span>(accident_data_sf) <span class="sc">+</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tm_dots</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="1200"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tm_shape(THR_sf) +</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#   tm_lines()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="kernel-density-estimation" class="level2">
+<h2 class="anchored" data-anchor-id="kernel-density-estimation">Kernel Density Estimation</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>accident_data <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(accident_data_sf)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>THSAB <span class="ot">&lt;-</span> <span class="fu">as_Spatial</span>(THSAB_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>accident_data_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(accident_data, <span class="st">"SpatialPoints"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>THSAB_sp <span class="ot">&lt;-</span> <span class="fu">as</span>(THSAB, <span class="st">"SpatialPolygons"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>accident_data_ppp <span class="ot">&lt;-</span> <span class="fu">as.ppp</span>(accident_data_sf)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">any</span>(<span class="fu">duplicated</span>(accident_data_ppp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(accident_data_ppp)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>THSAB_owin <span class="ot">&lt;-</span> <span class="fu">as.owin</span>(THSAB_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(THSAB_owin)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>accident_data_owin_ppp <span class="ot">&lt;-</span> accident_data_ppp[THSAB_owin]</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>accident_data_owin_ppp.km <span class="ot">&lt;-</span> <span class="fu">rescale.ppp</span>(accident_data_owin_ppp, <span class="dv">1000</span>, <span class="st">"km"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>kde_accident_data_bw <span class="ot">&lt;-</span> <span class="fu">density</span>(accident_data_owin_ppp.km,</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>                              <span class="at">sigma=</span>bw.diggle,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>                              <span class="at">edge=</span><span class="cn">TRUE</span>,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>                              <span class="at">kernel=</span><span class="st">"quartic"</span>) </span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_accident_data_bw, <span class="at">main =</span> <span class="st">"Fixed bandwidth"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="1200"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>kde_accident_data_adaptive <span class="ot">&lt;-</span> <span class="fu">adaptive.density</span>(accident_data_owin_ppp.km, <span class="at">method=</span><span class="st">"kernel"</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(kde_accident_data_adaptive)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex01_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="1200"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>BKroad <span class="ot">&lt;-</span> <span class="fu">st_intersects</span>(THSAB_sf, accident_data_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>lixels <span class="ot">&lt;-</span> <span class="fu">lixelize_lines</span>(THR_sf_lines, </span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>                         <span class="at">lx_length =</span> <span class="dv">5000</span>, </span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>                         <span class="at">mindist =</span> <span class="dv">2000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span> <span class="fu">lines_center</span>(lixels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>THR_sf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 2792590 features and 14 fields
+Geometry type: MULTILINESTRING
+Dimension:     XY
+Bounding box:  xmin: 97.34457 ymin: 5.643645 xmax: 105.6528 ymax: 20.47168
+Projected CRS: WGS 84 / UTM zone 47N
+First 10 features:
+             name               name_en        highway  surface smoothness
+1      ถนนฉลองกรุง    Chalong Krung Road      secondary    paved       &lt;NA&gt;
+2  ซอยฉลองกรุง 1/1 Soi Chalong Krung 1/1    residential     &lt;NA&gt;       &lt;NA&gt;
+3            &lt;NA&gt;                  &lt;NA&gt; secondary_link     &lt;NA&gt;       &lt;NA&gt;
+4            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+5      ถนนฉลองกรุง    Chalong Krung Road      secondary concrete       &lt;NA&gt;
+6            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+7     ถนนเอราวัณ 1         Erawan 1 Road       tertiary     &lt;NA&gt;       &lt;NA&gt;
+8            &lt;NA&gt;                  &lt;NA&gt;           path  unpaved       &lt;NA&gt;
+9            &lt;NA&gt;                  &lt;NA&gt;        service     &lt;NA&gt;       &lt;NA&gt;
+10           &lt;NA&gt;                  &lt;NA&gt;    residential     &lt;NA&gt;       &lt;NA&gt;
+   width lanes oneway bridge layer source        name_th     osm_id  osm_type
+1   &lt;NA&gt;  &lt;NA&gt;    yes   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;     ถนนฉลองกรุง 1125681229 ways_line
+2   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt; ซอยฉลองกรุง 1/1  594401607 ways_line
+3   &lt;NA&gt;  &lt;NA&gt;    yes   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  472283206 ways_line
+4   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  594401608 ways_line
+5   &lt;NA&gt;     2    yes    yes     1   Bing     ถนนฉลองกรุง  116847248 ways_line
+6   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  317485095 ways_line
+7   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;    ถนนเอราวัณ 1  378672881 ways_line
+8   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;    GPS           &lt;NA&gt; 1238351123 ways_line
+9   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  909942692 ways_line
+10  &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;   &lt;NA&gt;  &lt;NA&gt;   &lt;NA&gt;           &lt;NA&gt;  694824299 ways_line
+                         geometry
+1  MULTILINESTRING ((100.7913 ...
+2  MULTILINESTRING ((100.7882 ...
+3  MULTILINESTRING ((100.7844 ...
+4  MULTILINESTRING ((100.7873 ...
+5  MULTILINESTRING ((100.7831 ...
+6  MULTILINESTRING ((100.7931 ...
+7  MULTILINESTRING ((100.6416 ...
+8  MULTILINESTRING ((98.87378 ...
+9  MULTILINESTRING ((100.193 1...
+10 MULTILINESTRING ((100.1994 ...</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># densities &lt;- nkde(THR_sf_lines, </span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co">#                   events = accident_data_sf,</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">#                   w = rep(1, nrow(accident_data_sf)),</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="co">#                   samples = samples,</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="co">#                   kernel_name = "quartic",</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co">#                   bw = 300, </span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                   div= "bw", </span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                   method = "continuous", </span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                   digits = 1, </span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                   tol = 1,</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="co">#                   grid_shape = c(1,1), </span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="co">#                   max_depth = 15,</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="co">#                   agg = NULL,</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a><span class="co">#                   sparse = TRUE,</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="co">#                   verbose = FALSE)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
