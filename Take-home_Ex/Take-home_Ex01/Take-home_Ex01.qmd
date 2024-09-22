@@ -144,13 +144,14 @@ The above results shown that majority of accidents cases from 2019 to 2022 is ac
 
 :::
 
+The graphs below are showcasing the Distribution of accidents in different scale from **overall** to **year by year** and to **month by year**
 
 ```{r fig.height=9, fig.width=12, dpi=100}
 tmap_mode('plot')
 tm_shape(THSAB_sf) +
   tm_polygons() +
 tm_shape(accident_data_sf) +
-  tm_dots() +
+  tm_dots(size = 0.01, "red") +
 tm_layout(main.title = "Distribution of accidents")
 # tm_shape(THR_sf) +
 #   tm_lines()
@@ -160,12 +161,12 @@ tm_layout(main.title = "Distribution of accidents")
 tm_shape(THSAB_sf) +
   tm_polygons() +
 tm_shape(accident_data_sf) +
-  tm_dots(size = 0.1, "red") +
+  tm_dots(size = 0.01, "red") +
 tm_facets(by = "incident_year",
           free.coords = FALSE,
           free.scales = FALSE,
-          drop.units = TRUE)
-#   tm_dots()
+          drop.units = TRUE) +
+tm_layout(main.title = "Distribution of accidents by year")
 ```
 
 ```{r fig.height=18, fig.width=54, dpi=100}
@@ -178,64 +179,92 @@ tm_facets(by = "incident_monthyear",
           free.scales = FALSE,
           drop.units = TRUE,
           ncol = 12,
-          nrow = 4)
-#   tm_dots()
+          nrow = 4)+
+tm_layout(main.title = "Distribution of accidents by month by year")
 ```
 
-## 4.2 Kernel Density Estimation
+:::callout-note
+
+The most comprehensive one are probably the month by year distribution which showcase the changes of distribution of accidents depending on the period and different seasons
+
+:::
+
+## 4.2 First-order Spatial Point Patterns Analysis
+
+Kernel Density Estimation
 
 ### Geospatial Data wrangling
+
+The code chunk below uses as_Spatial() of sf package to convert the three geospatial data from simple feature data frame to sp’s Spatial* class.
 
 ```{r}
 accident_data <- as_Spatial(accident_data_sf)
 THSAB <- as_Spatial(THSAB_sf)
 ```
 
+spatstat requires the analytical data in ppp object form. There is no direct way to convert a Spatial* classes into ppp object. We need to convert the Spatial classes* into Spatial object first.
+
+The codes chunk below converts the Spatial* classes into generic sp objects.
+
 ```{r}
 accident_data_sp <- as(accident_data, "SpatialPoints")
 THSAB_sp <- as(THSAB, "SpatialPolygons")
 ```
 
+We can check the duplication in a ppp object by using the code chunk below.
+
 ```{r}
 accident_data_ppp <- as.ppp(accident_data_sf)
 any(duplicated(accident_data_ppp))
 ```
+Since the results return false there's no duplicated points in the data
 
-```{r}
+```{r fig.height=18, fig.width=54, dpi=100}
 plot(accident_data_ppp)
 ```
 
 ### Creating owin object
+
+The code chunk below is used to covert sg SpatialPolygon object into owin object of spatstat.
 
 ```{r}
 THSAB_owin <- as.owin(THSAB_sf)
 ```
 
 
-```{r}
-plot(THSAB_owin)
-```
 ### Rescalling KDE values
+
+we will extract childcare events that are located within the review region and re-scale the unit of measurement from meter to kilometer by using the code chunk below.
 
 ```{r}
 accident_data_owin_ppp <- accident_data_ppp[THSAB_owin]
 accident_data_owin_ppp.km <- rescale.ppp(accident_data_owin_ppp, 1000, "km")
 ```
 
+Now, we can re-run density() using the resale data set and plot the output kde map. In this case I'll be using bw.diggle() since it seems to be working best
 
 ```{r fig.height=9, fig.width=12, dpi=100}
 kde_accident_data_bw <- density(accident_data_owin_ppp.km,
                               sigma=bw.diggle,
                               edge=TRUE,
-                              kernel="quartic") 
+                              kernel="gaussian") 
 plot(kde_accident_data_bw, main = "Fixed bandwidth")
 ```
 
+To compared the above method I'll also be running another density using adaptive method
 
 ```{r fig.height=9, fig.width=12, dpi=100}
 kde_accident_data_adaptive <- adaptive.density(accident_data_owin_ppp.km, method="kernel")
 plot(kde_accident_data_adaptive)
 ```
+
+:::callout-note
+
+Both graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period
+
+:::
+
+
 
 ```{r}
 # BKroad <- st_intersects(THSAB_sf, accident_data_sf)
