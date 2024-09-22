@@ -255,7 +255,7 @@ To compared the above method I'll also be running another density using adaptive
 
 ```{r fig.height=9, fig.width=12, dpi=100}
 kde_accident_data_adaptive <- adaptive.density(accident_data_owin_ppp.km, method="kernel")
-plot(kde_accident_data_adaptive)
+plot(kde_accident_data_adaptive, main = "Adaptive bandwidth")
 ```
 
 :::callout-note
@@ -264,40 +264,62 @@ Both graph produce roughly the same results which highlight some of the hot zone
 
 :::
 
-
+### Testing spatial point patterns using Clark and Evans Test
 
 ```{r}
-# BKroad <- st_intersects(THSAB_sf, accident_data_sf)
+
+clarkevans.test(accident_data_ppp,
+                correction="none",
+                clipregion="THSAB_owin",
+                alternative=c("clustered"),
+                nsim=99)
+```
+:::callout-note
+
+From the test results, we rejected the null hypothesis that the point patterns are randomly distributed.
+
+:::
+
+## 4.3 Second-order Spatial Point Patterns Analysis
+
+### Analysing Spatial Point Process Using G-Function
+
+```{r fig.height=9, fig.width=12, dpi=100}
+G_CK = Gest(accident_data_ppp, correction = "border")
+plot(G_CK, xlim=c(0,2000))
+```
+
+### Performing Complete Spatial Randomness Test Using G-Function
+
+```{r fig.height=9, fig.width=12, dpi=100}
+G_CK.csr <- envelope(accident_data_ppp, Gest, nsim = 999)
+plot(G_CK.csr)
+```
+
+:::callout-note
+
+From the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed. The estimated G(r) lies above the upper envelope, the estimated G(r) is statistically significant
+
+:::
+
+### Analysing Spatial Point Process Using F-Function
+
+```{r fig.height=9, fig.width=12, dpi=100}
+F_CK = Fest(accident_data_ppp)
+plot(F_CK)
 ```
 
 
-```{r}
-# lixels <- lixelize_lines(THR_sf_lines, 
-#                          lx_length = 5000, 
-#                          mindist = 2000)
+### Performing Complete Spatial Randomness Test Using F-Function
 
-```
-
-```{r}
-# samples <- lines_center(lixels)
+```{r fig.height=9, fig.width=12, dpi=100}
+F_CK.csr <- envelope(accident_data_ppp, Fest, nsim = 999)
+plot(F_CK.csr)
 ```
 
 
+:::callout-note
 
-```{r}
-# densities <- nkde(THR_sf_lines, 
-#                   events = accident_data_sf,
-#                   w = rep(1, nrow(accident_data_sf)),
-#                   samples = samples,
-#                   kernel_name = "quartic",
-#                   bw = 300, 
-#                   div= "bw", 
-#                   method = "continuous", 
-#                   digits = 1, 
-#                   tol = 1,
-#                   grid_shape = c(1,1), 
-#                   max_depth = 15,
-#                   agg = NULL,
-#                   sparse = TRUE,
-#                   verbose = FALSE)
-```
+From the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed
+
+:::
