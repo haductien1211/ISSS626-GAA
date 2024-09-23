@@ -12,3 +12,235 @@ execute:
 ---
 
 # 1. Getting started
+
+The below 4 packages will be used
+
+```{r}
+pacman::p_load(sf, tmap, sfdep, tidyverse)
+```
+
+# 2. The data
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+```{r}
+hunan2012 <- read_csv("data/aspatial/Hunan_2012.csv")
+```
+
+```{r}
+hunan_GDPPC <- left_join(hunan,hunan2012) %>%
+  select(1:4, 7, 15)
+```
+
+# 3. Global meaures of spaitial association
+
+## Visualising 
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+tm_shape(hunan_GDPPC) +
+  tm_fill("GDPPC",
+          n = 5,
+          palette="Blues",
+          style = "equal") +
+  tm_borders(alpha = 0.5) +
+  tm_layout(main.title = "Distribution of GDPPC")
+```
+
+## 3.1 Diriving Queen's continuity weights: sfdep methods
+
+-   nb: a neighbor list objects as created by st_neighbors().
+-   style: default "W" for row stadarized weights
+-   allow_zero: if TRUE assisgns zero as lagged value to zone without neighbors
+
+```{r}
+wm_q <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1)
+```
+
+## 3.2 Computing global Moran's I
+
+```{r}
+moranI <- global_moran(wm_q$GDPPC,
+                       wm_q$nb,
+                       wm_q$wt)
+moranI
+```
+
+## 3.3 Performing Global Moran'I test
+
+```{r}
+global_moran_test(wm_q$GDPPC,
+                  wm_q$nb,
+                  wm_q$wt)
+```
+
+::: callout-tip
+Since p-value \< 0.05 based on the above result, we could reject the null hypothesis
+:::
+
+## 3.4 Performing Global Moran's I permutation test
+
+::: panel-tabset
+## Step 1:
+
+```{r}
+set.seed(1234)
+```
+
+## Step 2:
+
+```{r}
+#| eval: false
+global_moran_perm(wm_q$GDPPC,
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99)
+```
+
+## Result:
+
+```{r}
+#| echo: false
+global_moran_perm(wm_q$GDPPC,
+                  wm_q$nb,
+                  wm_q$wt,
+                  nsim = 99)
+```
+
+:::
+
+## 3.5 Computing local Moran's I
+
+We will learn to calculate local Moran's I using `local_moran()`
+
+:::panel-tabset
+
+## The code
+
+```{r}
+lisa <- wm_q %>%
+  mutate(local_moran = local_moran(GDPPC,
+                                   nb,
+                                   wt,
+                                   nsim = 99),
+         .before = 1) %>%
+  unnest(local_moran)
+
+```
+
+## The ouput
+
+```{r}
+head(lisa)
+```
+
+:::
+
+## 3.6 Visualizing local Moran's I
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+tmap_mode('plot')
+
+tm_shape(lisa) +
+  tm_fill('ii') +
+  tm_borders(alpha = 0.5) +
+  tm_view(set.zoom.limits = c(6,8)) +
+  tm_layout(main.title = "local Moran's I of GDPPC",
+            main.title.size = 2)
+```
+
+
+## 3.7 Visualising local Moran's I and p-value
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+
+map1 <- tm_shape(lisa) +
+          tm_fill('ii') +
+          tm_borders(alpha = 0.5) +
+          tm_view(set.zoom.limits = c(6,8)) +
+          tm_layout(main.title = "local Moran's I of GDPPC",
+                    main.title.size = 0.8)
+
+map2 <- tm_shape(lisa) +
+          tm_fill('p_ii',
+                  breaks=c(-Inf, 0.001, 0.01, 0.05, Inf)) +
+          tm_borders(alpha = 0.5) +
+          tm_layout(main.title = "p_value of local Moran's I of GDPPC",
+                    main.title.size = 0.8)
+
+tmap_arrange(map1, map2, asp=1, ncol=2)
+```
+
+## 3.8 Visualising LISA map
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+lisa_sig <-lisa %>%
+  filter(p_ii < 0.05)
+
+tmap_mode('plot')
+
+tm_shape(lisa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+  tm_shape(lisa_sig) +
+  tm_fill("mean") +
+  tm_borders(alpha = 0.4)
+```
+## 3.9 Computing local Gi* Statistics
+
+```{r}
+wm_idw <- hunan_GDPPC %>%
+  mutate(nb = st_contiguity(geometry),
+         wt = st_inverse_distance(nb,
+                                  geometry,
+                                  scale = 1,
+                                  alpha = 1),
+         .before = 1)
+```
+
+Now we compute local Gi* by using the code chunk below
+
+```{r}
+HCSA <- wm_idw %>%
+  mutate(local_Gi = local_gstar_perm(GDPPC,
+                                     nb,
+                                     wt,
+                                     nsim = 99),
+         .before = 1) %>%
+  unnest(local_Gi)
+
+HCSA
+```
+
+
+## 3.10 Visualising Gi*
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+tmap_mode('plot')
+
+tm_shape(HCSA) +
+  tm_fill("gi_star") +
+  tm_borders(alpha = 0.5)
+```
+
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+HCSA_sig <-HCSA %>%
+  filter(p_sim < 0.05)
+
+tmap_mode('plot')
+
+tm_shape(HCSA) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+  tm_shape(HCSA_sig) +
+  tm_fill("cluster") +
+  tm_borders(alpha = 0.5)
+```
+
