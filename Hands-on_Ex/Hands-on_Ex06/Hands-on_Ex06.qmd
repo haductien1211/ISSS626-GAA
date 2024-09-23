@@ -1,0 +1,14 @@
+---
+title: "Hands-on Exercise 6 Geographical Segmentation with Spatially Constrained Clustering Techniques"
+author: "Ha Duc Tien"
+date: "September 23, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+---
+
+# 1. Overview
