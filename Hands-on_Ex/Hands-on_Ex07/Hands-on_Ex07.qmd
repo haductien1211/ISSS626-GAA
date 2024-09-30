@@ -1,0 +1,14 @@
+---
+title: "Hands-on Exercise 7 Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method"
+author: "Ha Duc Tien"
+date: "September 30, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+---
+
+# 1. Overview

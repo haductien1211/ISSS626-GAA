@@ -14,46 +14,179 @@
     "text": "Welcome to ISSS622 Geospatial Analytics and Applications. In this website, you will find my coursework prepared for this course."
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html",
-    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html",
-    "title": "In-class Exercise 4",
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html",
+    "title": "In-class Exercise 5",
     "section": "",
-    "text": "pacman::p_load(sf, ggstatsplot, knitr, tmap, tidyverse, GWmodel)"
+    "text": "The below 4 packages will be used\n\npacman::p_load(sf, tmap, sfdep, tidyverse)"
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#computing-geographically-weighted-summary-statistics",
-    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#computing-geographically-weighted-summary-statistics",
-    "title": "In-class Exercise 4",
-    "section": "3.1 Computing geographically weighted summary statistics",
-    "text": "3.1 Computing geographically weighted summary statistics\n\ngwstat &lt;- gwss(data = hunan_sp,\n               vars = \"GDPPC\",\n               bw = bw_AIC,\n               kernel = \"bisquare\",\n               adaptive = TRUE,\n               longlat = T)"
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising",
+    "title": "In-class Exercise 5",
+    "section": "Visualising",
+    "text": "Visualising\n\ntm_shape(hunan_GDPPC) +\n  tm_fill(\"GDPPC\",\n          n = 5,\n          palette=\"Blues\",\n          style = \"equal\") +\n  tm_borders(alpha = 0.5) +\n  tm_layout(main.title = \"Distribution of GDPPC\")"
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#preparing-the-output-data",
-    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#preparing-the-output-data",
-    "title": "In-class Exercise 4",
-    "section": "3.2 Preparing the output data",
-    "text": "3.2 Preparing the output data\nCode chunk below to extract SDF data table from gwss object output from gwss() and converted to dataframe using as.data.frame()\n\ngwstat_df &lt;- as.data.frame(gwstat$SDF)\n\nNext use cbind() to append the dataframe to hunan dataframe. Be mindful that cbind() blindly append the data\n\nhunan_gstat &lt;- cbind(hunan, gwstat_df)\n\n\ntm_shape(hunan_gstat) +\n  tm_fill(\"GDPPC_LM\",\n          n = 5,\n          style = 'quantile') +\n  tm_borders(alpha = 1) +\n  tm_layout(main.title = \"Distribution of geographically weighted mean\",\n            main.title.position = \"center\",\n            main.title.size = 2.0,\n            legend.text.size = 1.2,\n            legend.height = 1.5,\n            legend.width = 1.5,\n            frame = TRUE)"
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#diriving-queens-continuity-weights-sfdep-methods",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#diriving-queens-continuity-weights-sfdep-methods",
+    "title": "In-class Exercise 5",
+    "section": "3.1 Diriving Queen’s continuity weights: sfdep methods",
+    "text": "3.1 Diriving Queen’s continuity weights: sfdep methods\n\nnb: a neighbor list objects as created by st_neighbors().\nstyle: default “W” for row stadarized weights\nallow_zero: if TRUE assisgns zero as lagged value to zone without neighbors\n\n\nwm_q &lt;- hunan_GDPPC %&gt;%\n  mutate(nb = st_contiguity(geometry),\n         wt = st_weights(nb,\n                         style = \"W\"),\n         .before = 1)"
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex03/data/geospatial/MPSZ-2019.html",
-    "href": "In-class_Ex/In-class_Ex03/data/geospatial/MPSZ-2019.html",
-    "title": "ISSS622-GAA",
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-global-morans-i",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-global-morans-i",
+    "title": "In-class Exercise 5",
+    "section": "3.2 Computing global Moran’s I",
+    "text": "3.2 Computing global Moran’s I\n\nmoranI &lt;- global_moran(wm_q$GDPPC,\n                       wm_q$nb,\n                       wm_q$wt)\nmoranI\n\n$I\n[1] 0.30075\n\n$K\n[1] 7.640659"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morani-test",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morani-test",
+    "title": "In-class Exercise 5",
+    "section": "3.3 Performing Global Moran’I test",
+    "text": "3.3 Performing Global Moran’I test\n\nglobal_moran_test(wm_q$GDPPC,\n                  wm_q$nb,\n                  wm_q$wt)\n\n\n    Moran I test under randomisation\n\ndata:  x  \nweights: listw    \n\nMoran I statistic standard deviate = 4.7351, p-value = 1.095e-06\nalternative hypothesis: greater\nsample estimates:\nMoran I statistic       Expectation          Variance \n      0.300749970      -0.011494253       0.004348351 \n\n\n\n\n\n\n\n\nTip\n\n\n\nSince p-value &lt; 0.05 based on the above result, we could reject the null hypothesis"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morans-i-permutation-test",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morans-i-permutation-test",
+    "title": "In-class Exercise 5",
+    "section": "3.4 Performing Global Moran’s I permutation test",
+    "text": "3.4 Performing Global Moran’s I permutation test\n\nStep 1:Step 2:Result:\n\n\n\nset.seed(1234)\n\n\n\n\nglobal_moran_perm(wm_q$GDPPC,\n                  wm_q$nb,\n                  wm_q$wt,\n                  nsim = 99)\n\n\n\n\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  x \nweights: listw  \nnumber of simulations + 1: 100 \n\nstatistic = 0.30075, observed rank = 100, p-value &lt; 2.2e-16\nalternative hypothesis: two.sided"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-morans-i",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-morans-i",
+    "title": "In-class Exercise 5",
+    "section": "3.5 Computing local Moran’s I",
+    "text": "3.5 Computing local Moran’s I\nWe will learn to calculate local Moran’s I using local_moran()\n\nThe codeThe ouput\n\n\n\nlisa &lt;- wm_q %&gt;%\n  mutate(local_moran = local_moran(GDPPC,\n                                   nb,\n                                   wt,\n                                   nsim = 99),\n         .before = 1) %&gt;%\n  unnest(local_moran)\n\n\n\n\nhead(lisa)\n\nSimple feature collection with 6 features and 20 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 110.4922 ymin: 28.61762 xmax: 112.3013 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 6 × 21\n        ii        eii     var_ii    z_ii  p_ii p_ii_sim p_folded_sim skewness\n     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;\n1 -0.00147  0.00177   0.000418   -0.158  0.874     0.82         0.41   -0.812\n2  0.0259   0.00641   0.0105      0.190  0.849     0.96         0.48   -1.09 \n3 -0.0120  -0.0374    0.102       0.0796 0.937     0.76         0.38    0.824\n4  0.00102 -0.0000349 0.00000437  0.506  0.613     0.64         0.32    1.04 \n5  0.0148  -0.00340   0.00165     0.449  0.654     0.5          0.25    1.64 \n6 -0.0388  -0.00339   0.00545    -0.480  0.631     0.82         0.41    0.614\n# ℹ 13 more variables: kurtosis &lt;dbl&gt;, mean &lt;fct&gt;, median &lt;fct&gt;, pysal &lt;fct&gt;,\n#   nb &lt;nb&gt;, wt &lt;list&gt;, NAME_2 &lt;chr&gt;, ID_3 &lt;int&gt;, NAME_3 &lt;chr&gt;,\n#   ENGTYPE_3 &lt;chr&gt;, County &lt;chr&gt;, GDPPC &lt;dbl&gt;, geometry &lt;POLYGON [°]&gt;"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualizing-local-morans-i",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualizing-local-morans-i",
+    "title": "In-class Exercise 5",
+    "section": "3.6 Visualizing local Moran’s I",
+    "text": "3.6 Visualizing local Moran’s I\n\ntmap_mode('plot')\n\ntm_shape(lisa) +\n  tm_fill('ii') +\n  tm_borders(alpha = 0.5) +\n  tm_view(set.zoom.limits = c(6,8)) +\n  tm_layout(main.title = \"local Moran's I of GDPPC\",\n            main.title.size = 2)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-local-morans-i-and-p-value",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-local-morans-i-and-p-value",
+    "title": "In-class Exercise 5",
+    "section": "3.7 Visualising local Moran’s I and p-value",
+    "text": "3.7 Visualising local Moran’s I and p-value\n\nmap1 &lt;- tm_shape(lisa) +\n          tm_fill('ii') +\n          tm_borders(alpha = 0.5) +\n          tm_view(set.zoom.limits = c(6,8)) +\n          tm_layout(main.title = \"local Moran's I of GDPPC\",\n                    main.title.size = 0.8)\n\nmap2 &lt;- tm_shape(lisa) +\n          tm_fill('p_ii',\n                  breaks=c(-Inf, 0.001, 0.01, 0.05, Inf)) +\n          tm_borders(alpha = 0.5) +\n          tm_layout(main.title = \"p_value of local Moran's I of GDPPC\",\n                    main.title.size = 0.8)\n\ntmap_arrange(map1, map2, asp=1, ncol=2)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-lisa-map",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-lisa-map",
+    "title": "In-class Exercise 5",
+    "section": "3.8 Visualising LISA map",
+    "text": "3.8 Visualising LISA map\n\nlisa_sig &lt;-lisa %&gt;%\n  filter(p_ii &lt; 0.05)\n\ntmap_mode('plot')\n\ntm_shape(lisa) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\n  tm_shape(lisa_sig) +\n  tm_fill(\"mean\") +\n  tm_borders(alpha = 0.4)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-gi-statistics",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-gi-statistics",
+    "title": "In-class Exercise 5",
+    "section": "3.9 Computing local Gi* Statistics",
+    "text": "3.9 Computing local Gi* Statistics\n\nwm_idw &lt;- hunan_GDPPC %&gt;%\n  mutate(nb = st_contiguity(geometry),\n         wt = st_inverse_distance(nb,\n                                  geometry,\n                                  scale = 1,\n                                  alpha = 1),\n         .before = 1)\n\nNow we compute local Gi* by using the code chunk below\n\nHCSA &lt;- wm_idw %&gt;%\n  mutate(local_Gi = local_gstar_perm(GDPPC,\n                                     nb,\n                                     wt,\n                                     nsim = 99),\n         .before = 1) %&gt;%\n  unnest(local_Gi)\n\nHCSA\n\nSimple feature collection with 88 features and 18 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 88 × 19\n   gi_star cluster   e_gi     var_gi std_dev p_value p_sim p_folded_sim skewness\n     &lt;dbl&gt; &lt;fct&gt;    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;\n 1  0.0416 Low     0.0114 0.00000641  0.0493 9.61e-1  0.7          0.35    0.875\n 2 -0.333  Low     0.0106 0.00000384 -0.0941 9.25e-1  1            0.5     0.661\n 3  0.281  High    0.0126 0.00000751 -0.151  8.80e-1  0.9          0.45    0.640\n 4  0.411  High    0.0118 0.00000922  0.264  7.92e-1  0.6          0.3     0.853\n 5  0.387  High    0.0115 0.00000956  0.339  7.34e-1  0.62         0.31    1.07 \n 6 -0.368  High    0.0118 0.00000591 -0.583  5.60e-1  0.72         0.36    0.594\n 7  3.56   High    0.0151 0.00000731  2.61   9.01e-3  0.06         0.03    1.09 \n 8  2.52   High    0.0136 0.00000614  1.49   1.35e-1  0.2          0.1     1.12 \n 9  4.56   High    0.0144 0.00000584  3.53   4.17e-4  0.04         0.02    1.23 \n10  1.16   Low     0.0104 0.00000370  1.82   6.86e-2  0.12         0.06    0.416\n# ℹ 78 more rows\n# ℹ 10 more variables: kurtosis &lt;dbl&gt;, nb &lt;nb&gt;, wt &lt;list&gt;, NAME_2 &lt;chr&gt;,\n#   ID_3 &lt;int&gt;, NAME_3 &lt;chr&gt;, ENGTYPE_3 &lt;chr&gt;, County &lt;chr&gt;, GDPPC &lt;dbl&gt;,\n#   geometry &lt;POLYGON [°]&gt;"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-gi",
+    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-gi",
+    "title": "In-class Exercise 5",
+    "section": "3.10 Visualising Gi*",
+    "text": "3.10 Visualising Gi*\n\ntmap_mode('plot')\n\ntm_shape(HCSA) +\n  tm_fill(\"gi_star\") +\n  tm_borders(alpha = 0.5)\n\n\n\n\n\n\n\n\n\nHCSA_sig &lt;-HCSA %&gt;%\n  filter(p_sim &lt; 0.05)\n\ntmap_mode('plot')\n\ntm_shape(HCSA) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\n  tm_shape(HCSA_sig) +\n  tm_fill(\"cluster\") +\n  tm_borders(alpha = 0.5)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex03/In-class_Ex03.html",
+    "href": "In-class_Ex/In-class_Ex03/In-class_Ex03.html",
+    "title": "In-class Exercise 3",
     "section": "",
-    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+    "text": "1. Getting started"
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex02/data/geospatial/MPSZ-2019.html",
-    "href": "In-class_Ex/In-class_Ex02/data/geospatial/MPSZ-2019.html",
-    "title": "ISSS622-GAA",
+    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
+    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
+    "title": "In-class Exercise 2",
     "section": "",
-    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+    "text": "1. Getting started\n\npacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)\n\n\n\n2. Importing the spatial data\n\nchildcare_sf &lt;- st_read(\"data/child-care-services-geojson.geojson\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `child-care-services-geojson' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data\\child-care-services-geojson.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 1545 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6824 ymin: 1.248403 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\n\nsg_sf &lt;- st_read(dsn = \"data\", layer=\"CostalOutline\")%&gt;%\n  st_transform(crs = 3414)\n\nReading layer `CostalOutline' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 60 features and 4 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 2663.926 ymin: 16357.98 xmax: 56047.79 ymax: 50244.03\nProjected CRS: SVY21\n\n\n\nmpsz_sf &lt;- st_read(dsn = \"data\", \n                layer = \"MP14_SUBZONE_WEB_PL\")%&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\n\n\n3. Some insights and guidance\nWorking with st_union()\nThe code chunk below, st_union() is used to derive the coastal outline of sf tibble data.frame\n\nsg_sf &lt;- mpsz_sf %&gt;%\n  st_union()\n\nsg_sf will look similar to the code below\n\nplot(sg_sf)\n\n\n\n\n\n\n\n\nSince maptools expired, we could use the code below instead of as.SpatialGridDataFrame.im()\n\ngridded_kde_childcareSG_bw &lt;- as(kde_childcareSG.bw, \"SpatialGridDataFrame\")\nplot(gridded_kde_childcareSG_bw)\nspplot(gridded_kde_childcareSG_bw)\n\nFor Monte Carlo simulation use\n\nset.seed(1234)\n\nUse Edge correction method of spatstat to reduce biases of spatial graphs\n\n\n4. Take-home Exercise 1\nThe study area is Bangkok Metropolitan Region\n\n\n\n\n\n\nTip\n\n\n\nThe WGS84/UTM zone 47N the EPSG code is 32647\n\n\nThe data Thai traffic accident 2019 - 2022\nUse the code below to import the data\n\naccident_data &lt;- read_csv(\"data/thai_road_accident_2019_2022.csv\")%&gt;%\n  filter(!is.na(longitude) & longitude != \"\",\n         !is.na(latitude) & latitude != \"\") %&gt;%\n  st_as_sf(coords = c(\"longitude\", \"latitude\"), \n           crs = 4326) %&gt;%\n  st_transform(crs = 32647)"
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex01/data/geospatial/MPSZ-2019.html",
-    "href": "In-class_Ex/In-class_Ex01/data/geospatial/MPSZ-2019.html",
-    "title": "ISSS622-GAA",
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
+    "title": "In-class Exercise 1",
     "section": "",
-    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+    "text": "Loading the R packages\n\nThe taskThe Code\n\n\nLoading the following R packages tidyverse, sf, tmap, ggstatsplot\n\n\n\npacman::p_load(tidyverse, sf, tmap, ggstatsplot)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#checking-coordinate-system",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#checking-coordinate-system",
+    "title": "In-class Exercise 1",
+    "section": "5.1 Checking coordinate system",
+    "text": "5.1 Checking coordinate system\n\nThe TaskThe Code\n\n\nWrite a code chunk to check the project of the imported sf objects.\n\n\n\nst_crs(mpsz19_shp)\n\nCoordinate Reference System:\n  User input: WGS 84 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"latitude\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"longitude\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    ID[\"EPSG\",4326]]"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#transforming-coordinate-system",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#transforming-coordinate-system",
+    "title": "In-class Exercise 1",
+    "section": "5.2 Transforming coordinate system",
+    "text": "5.2 Transforming coordinate system\n\nThe TaskTo import MPSZ-2019To import PreSchoolsLocation.kml\n\n\nRe-write the code chunk to import the Master Plan Sub-zone 2019 and Pre-schools Location with proper transformation\n\n\n\nmpsz19_shp &lt;- st_read(dsn = \"data/geospatial/\",\n                layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex01\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\n\n\n\n\npreschool &lt;- st_read(\"data/PreSchoolsLocation.kml\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `PRESCHOOLS_LOCATION' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex01\\data\\PreSchoolsLocation.kml' \n  using driver `KML'\nSimple feature collection with 2290 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6878 ymin: 1.247759 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#point-in-polygon-count",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#point-in-polygon-count",
+    "title": "In-class Exercise 1",
+    "section": "6.1 Point-in-Polygon count",
+    "text": "6.1 Point-in-Polygon count\n\nThe taskThe Code\n\n\nWrite a code chunk to count the number of pre-schools in each planning sub-zone.\n\n\n\nmpsz19_shp &lt;- mpsz19_shp %&gt;%\n  mutate(`PreSch Count` = lengths(st_intersects(mpsz19_shp, preschool)))"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#computing-density",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#computing-density",
+    "title": "In-class Exercise 1",
+    "section": "6.2 Computing density",
+    "text": "6.2 Computing density\n\nThe taskThe Code\n\n\nWrite a single line code to perform the following tasks:\n\nDerive the area of each planning sub-zone.\nDrop the unit of measurement of the area (i.e. m^2)\nCalculate the density of pre-school at the planning sub-zone level.\n\n\n\n\nmpsz19_shp &lt;- mpsz19_shp %&gt;%\n  mutate(Area = units::drop_units(\n    st_area(.)), `PreSch Density` = `PreSch Count` / Area * 1000000)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-wrangling",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-wrangling",
+    "title": "In-class Exercise 1",
+    "section": "8.1 Data Wrangling",
+    "text": "8.1 Data Wrangling\n\nThe TaskThe Code\n\n\nWrite a code chunk to prepare a data.frame showing population by Planning Area and Planning subzone\n\n\n\npopdata2023 &lt;- popdata %&gt;% \n  group_by(PA, SZ, AG) %&gt;% \n  summarise(`POP`=sum(`Pop`)) %&gt;%  \n  ungroup() %&gt;% \n  pivot_wider(names_from=AG,\n              values_from = POP)\n\ncolnames(popdata2023)\n\n [1] \"PA\"          \"SZ\"          \"0_to_4\"      \"10_to_14\"    \"15_to_19\"   \n [6] \"20_to_24\"    \"25_to_29\"    \"30_to_34\"    \"35_to_39\"    \"40_to_44\"   \n[11] \"45_to_49\"    \"50_to_54\"    \"55_to_59\"    \"5_to_9\"      \"60_to_64\"   \n[16] \"65_to_69\"    \"70_to_74\"    \"75_to_79\"    \"80_to_84\"    \"85_to_89\"   \n[21] \"90_and_Over\""
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-processing",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-processing",
+    "title": "In-class Exercise 1",
+    "section": "8.2 Data Processing",
+    "text": "8.2 Data Processing\n\nThe TaskThe Code\n\n\nWrite a code chunk to derive a tibble data.framewith the following fields PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY where by:\n\nYOUNG: age group 0 to 4 until age groyup 20 to 24,\nECONOMY ACTIVE: age group 25-29 until age group 60-64,\nAGED: age group 65 and above,\nTOTAL: all age group, and\nDEPENDENCY: the ratio between young and aged against economy active group.\n\n\n\n\npopdata2023 &lt;- popdata2023 %&gt;%\n  mutate(YOUNG=rowSums(.[3:6]) # Aged 0 - 24, 10 - 24\n         +rowSums(.[14])) %&gt;% # Aged 5 - 9\n  mutate(`ECONOMY ACTIVE` = rowSums(.[7:13]) + # Aged 25 - 59\n  rowSums(.[15])) %&gt;%  # Aged 60 -64\n  mutate(`AGED`=rowSums(.[16:21])) %&gt;%\n  mutate(`TOTAL`=rowSums(.[3:21])) %&gt;%\n  mutate(`DEPENDENCY`=(`YOUNG` + `AGED`)/ `ECONOMY ACTIVE`) %&gt;% \n  select(`PA`, `SZ`, `YOUNG`, \n         `ECONOMY ACTIVE`, `AGED`,\n         `TOTAL`, `DEPENDENCY`)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#joining-popdata2023-and-mpsz19_shp",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#joining-popdata2023-and-mpsz19_shp",
+    "title": "In-class Exercise 1",
+    "section": "8.3 Joining popdata2023 and mpsz19_shp",
+    "text": "8.3 Joining popdata2023 and mpsz19_shp\n\npopdata2023 &lt;- popdata2023 %&gt;%\n  mutate_at(.vars = vars(PA, SZ), \n          .funs = list(toupper)) \n\n\nmpsz_pop2023 &lt;- left_join(mpsz19_shp, popdata2023,\n                          by = c(\"SUBZONE_N\" = \"SZ\"))\n\n\npop2023_mpsz &lt;- left_join(popdata2023, mpsz19_shp, \n                          by = c(\"SZ\" = \"SUBZONE_N\"))"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-percentile-map",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-percentile-map",
+    "title": "In-class Exercise 1",
+    "section": "9.1 Analytical Map: Percentile Map",
+    "text": "9.1 Analytical Map: Percentile Map\n\nThe concept\nThe percentile map is a special type of quantile map with six specific categories: 0-1%, 1-10%, 10-50%, 50-90%, 90-99%, and 99-100%. The corresponding breakpoints can be derived by means of the base R quantile command, passing an explicit vector of cumulative probabilities as c(0, .01, .1, .5, .9, .99, 1). Note that the begin and endpoint need to be included.\n\n\nStep 1: Data Preparation\nThe code chunk below excludes records with NA by using the code chunk below.\n\nmpsz_pop2023 &lt;- mpsz_pop2023 %&gt;%\n  drop_na()\n\n\n\nStep 2: The get function\nThe code chunk below defines a function to get the input data and field to be used for creating the percentile map.\n\nget.var &lt;- function(vname,df) {\n  v &lt;- df[vname] %&gt;%\n    st_set_geometry(NULL)\n  \n  v &lt;- unname(v[,1])\n  return(v)\n}\n\n\n\nStep 3: A percentile mapping function\nThe code chunk below creates a function for computing and plotting the percentile map.\n\npercentmap &lt;- function(vnam, df, legtitle=NA, mtitle=\"Percentile Map\"){\n  percent &lt;- c(0,.01,.1,.5,.9,.99, 1)\n  var &lt;- get.var(vnam, df)\n  bperc &lt;- quantile(var, percent)\n  tm_shape(df) +\n  tm_polygons() +\n  tm_shape(df) +\n  tm_fill(vnam,\n          title=legtitle,\n          breaks=bperc,\n          palette=\"Blues\",\n          labels=c(\"&lt; 1%\", \"1% - 10%\", \"10% - 50%\", \"50% - 90%\", \"90% - 99%\", \"&gt; 99%\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"right\",\"bottom\"))\n}\n\n\n\nStep 4: Running the functions\nThe code chunk below runs the percentile map function.\n\nmpsz_pop2023 &lt;- st_as_sf(mpsz_pop2023)\npercentmap('DEPENDENCY', mpsz_pop2023)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-box-map",
+    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-box-map",
+    "title": "In-class Exercise 1",
+    "section": "9.2 Analytical Map: Box Map",
+    "text": "9.2 Analytical Map: Box Map\n\nThe Concept\nIn essence, a box map is an augmented quartile map, with an additional lower and upper category. When there are lower outliers, then the starting point for the breaks is the minimum value, and the second break is the lower fence. In contrast, when there are no lower outliers, then the starting point for the breaks will be the lower fence, and the second break is the minimum value (there will be no observations that fall in the interval between the lower fence and the minimum value).\n\nggplot(data = mpsz_pop2023,\n       aes(x = \"\",\n           y = DEPENDENCY)) +\n  geom_boxplot()\n\n\n\n\n\n\n\n\n\n\nStep 1: Creating the boxbreaks function\nThe code chunk on the right is an R function that creating break points for a box map.\n\narguments:\n\nv: vector with observations\nmult: multiplier for IQR (default 1.5) returns: bb: vector with 7 break points compute quartile and fences\n\nreturns:\n\nbb: vector with 7 break points compute quartile and fences\n\n\n\nboxbreaks &lt;- function(v,mult=1.5) {\n  qv &lt;- unname(quantile(v))\n  iqr &lt;- qv[4] - qv[2]\n  upfence &lt;- qv[4] + mult * iqr\n  lofence &lt;- qv[2] - mult * iqr\n  # initialize break points vector\n  bb &lt;- vector(mode=\"numeric\",length=7)\n  # logic for lower and upper fences\n  if (lofence &lt; qv[1]) {  # no lower outliers\n    bb[1] &lt;- lofence\n    bb[2] &lt;- floor(qv[1])\n  } else {\n    bb[2] &lt;- lofence\n    bb[1] &lt;- qv[1]\n  }\n  if (upfence &gt; qv[5]) { # no upper outliers\n    bb[7] &lt;- upfence\n    bb[6] &lt;- ceiling(qv[5])\n  } else {\n    bb[6] &lt;- upfence\n    bb[7] &lt;- qv[5]\n  }\n  bb[3:5] &lt;- qv[2:4]\n  return(bb)\n}\n\n\n\nStep 2: Creating the get.var function\nThe code chunk on the right an R function to extract a variable as a vector out of an sf data frame.\n\narguments:\n\nvname: variable name (as character, in quotes)\ndf: name of sf data frame\n\nreturns:\n\nv: vector with values (without a column name)\n\n\n\nget.var &lt;- function(vname,df) {\n  v &lt;- df[vname] %&gt;% st_set_geometry(NULL)\n  v &lt;- unname(v[,1])\n  return(v)\n}\n\n\n\nStep 3: Boxmap function\nThe code chunk on the right is an R function to create a box map.\n\narguments:\n\nvnam: variable name (as character, in quotes)\ndf: simple features polygon layer\nlegtitle: legend title\nmtitle: map title\nmult: multiplier for IQR\n\nreturns:\n\na tmap-element (plots a map)\n\n\n\nboxmap &lt;- function(vnam, df, \n                   legtitle=NA,\n                   mtitle=\"Box Map\",\n                   mult=1.5){\n  var &lt;- get.var(vnam,df)\n  bb &lt;- boxbreaks(var)\n  tm_shape(df) +\n    tm_polygons() +\n  tm_shape(df) +\n     tm_fill(vnam,title=legtitle,\n             breaks=bb,\n             palette=\"Blues\",\n          labels = c(\"lower outlier\", \n                     \"&lt; 25%\", \n                     \"25% - 50%\", \n                     \"50% - 75%\",\n                     \"&gt; 75%\", \n                     \"upper outlier\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"left\",\n                               \"top\"))\n}\n\n\n\nStep 4: Plotting Box Map\n\nboxmap(\"DEPENDENCY\", mpsz_pop2023)\n\n\n\n\n\n\n\n\n\ntmap_options(check.and.fix = TRUE)\ntmap_mode(\"view\")\nboxmap(\"DEPENDENCY\", mpsz_pop2023)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex07/Hands-on_Ex07.html",
+    "href": "Hands-on_Ex/Hands-on_Ex07/Hands-on_Ex07.html",
+    "title": "Hands-on Exercise 7 Calibrating Hedonic Pricing Model for Private Highrise Property with GWR Method",
+    "section": "",
+    "text": "1. Overview"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex05/Hands-on_Ex05.2.html",
@@ -966,209 +1099,6 @@
     "text": "In this hands-on exercise, we will gain hands-on experience on how to delineate homogeneous region by using geographically referenced multivariate data. There are two major analysis, namely:\n\nhierarchical cluster analysis; and\nspatially constrained cluster analysis.\n\nBy the end of this hands-on exercise, we will able:\n\nto convert GIS polygon data into R’s simple feature data.frame by using appropriate functions of sf package of R;\nto convert simple feature data.frame into R’s SpatialPolygonDataFrame object by using appropriate sf of package of R;\nto perform custer analysis by using hclust() of Base R;\nto perform spatially constrained cluster analysis using skater() of Base R; and\nto visualise the analysis output by using ggplot2 and tmap package."
   },
   {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html",
-    "title": "In-class Exercise 1",
-    "section": "",
-    "text": "Loading the R packages\n\nThe taskThe Code\n\n\nLoading the following R packages tidyverse, sf, tmap, ggstatsplot\n\n\n\npacman::p_load(tidyverse, sf, tmap, ggstatsplot)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#checking-coordinate-system",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#checking-coordinate-system",
-    "title": "In-class Exercise 1",
-    "section": "5.1 Checking coordinate system",
-    "text": "5.1 Checking coordinate system\n\nThe TaskThe Code\n\n\nWrite a code chunk to check the project of the imported sf objects.\n\n\n\nst_crs(mpsz19_shp)\n\nCoordinate Reference System:\n  User input: WGS 84 \n  wkt:\nGEOGCRS[\"WGS 84\",\n    DATUM[\"World Geodetic System 1984\",\n        ELLIPSOID[\"WGS 84\",6378137,298.257223563,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"latitude\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"longitude\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    ID[\"EPSG\",4326]]"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#transforming-coordinate-system",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#transforming-coordinate-system",
-    "title": "In-class Exercise 1",
-    "section": "5.2 Transforming coordinate system",
-    "text": "5.2 Transforming coordinate system\n\nThe TaskTo import MPSZ-2019To import PreSchoolsLocation.kml\n\n\nRe-write the code chunk to import the Master Plan Sub-zone 2019 and Pre-schools Location with proper transformation\n\n\n\nmpsz19_shp &lt;- st_read(dsn = \"data/geospatial/\",\n                layer = \"MPSZ-2019\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MPSZ-2019' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex01\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 332 features and 6 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 103.6057 ymin: 1.158699 xmax: 104.0885 ymax: 1.470775\nGeodetic CRS:  WGS 84\n\n\n\n\n\npreschool &lt;- st_read(\"data/PreSchoolsLocation.kml\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `PRESCHOOLS_LOCATION' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex01\\data\\PreSchoolsLocation.kml' \n  using driver `KML'\nSimple feature collection with 2290 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6878 ymin: 1.247759 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#point-in-polygon-count",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#point-in-polygon-count",
-    "title": "In-class Exercise 1",
-    "section": "6.1 Point-in-Polygon count",
-    "text": "6.1 Point-in-Polygon count\n\nThe taskThe Code\n\n\nWrite a code chunk to count the number of pre-schools in each planning sub-zone.\n\n\n\nmpsz19_shp &lt;- mpsz19_shp %&gt;%\n  mutate(`PreSch Count` = lengths(st_intersects(mpsz19_shp, preschool)))"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#computing-density",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#computing-density",
-    "title": "In-class Exercise 1",
-    "section": "6.2 Computing density",
-    "text": "6.2 Computing density\n\nThe taskThe Code\n\n\nWrite a single line code to perform the following tasks:\n\nDerive the area of each planning sub-zone.\nDrop the unit of measurement of the area (i.e. m^2)\nCalculate the density of pre-school at the planning sub-zone level.\n\n\n\n\nmpsz19_shp &lt;- mpsz19_shp %&gt;%\n  mutate(Area = units::drop_units(\n    st_area(.)), `PreSch Density` = `PreSch Count` / Area * 1000000)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-wrangling",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-wrangling",
-    "title": "In-class Exercise 1",
-    "section": "8.1 Data Wrangling",
-    "text": "8.1 Data Wrangling\n\nThe TaskThe Code\n\n\nWrite a code chunk to prepare a data.frame showing population by Planning Area and Planning subzone\n\n\n\npopdata2023 &lt;- popdata %&gt;% \n  group_by(PA, SZ, AG) %&gt;% \n  summarise(`POP`=sum(`Pop`)) %&gt;%  \n  ungroup() %&gt;% \n  pivot_wider(names_from=AG,\n              values_from = POP)\n\ncolnames(popdata2023)\n\n [1] \"PA\"          \"SZ\"          \"0_to_4\"      \"10_to_14\"    \"15_to_19\"   \n [6] \"20_to_24\"    \"25_to_29\"    \"30_to_34\"    \"35_to_39\"    \"40_to_44\"   \n[11] \"45_to_49\"    \"50_to_54\"    \"55_to_59\"    \"5_to_9\"      \"60_to_64\"   \n[16] \"65_to_69\"    \"70_to_74\"    \"75_to_79\"    \"80_to_84\"    \"85_to_89\"   \n[21] \"90_and_Over\""
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-processing",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#data-processing",
-    "title": "In-class Exercise 1",
-    "section": "8.2 Data Processing",
-    "text": "8.2 Data Processing\n\nThe TaskThe Code\n\n\nWrite a code chunk to derive a tibble data.framewith the following fields PA, SZ, YOUNG, ECONOMY ACTIVE, AGED, TOTAL, DEPENDENCY where by:\n\nYOUNG: age group 0 to 4 until age groyup 20 to 24,\nECONOMY ACTIVE: age group 25-29 until age group 60-64,\nAGED: age group 65 and above,\nTOTAL: all age group, and\nDEPENDENCY: the ratio between young and aged against economy active group.\n\n\n\n\npopdata2023 &lt;- popdata2023 %&gt;%\n  mutate(YOUNG=rowSums(.[3:6]) # Aged 0 - 24, 10 - 24\n         +rowSums(.[14])) %&gt;% # Aged 5 - 9\n  mutate(`ECONOMY ACTIVE` = rowSums(.[7:13]) + # Aged 25 - 59\n  rowSums(.[15])) %&gt;%  # Aged 60 -64\n  mutate(`AGED`=rowSums(.[16:21])) %&gt;%\n  mutate(`TOTAL`=rowSums(.[3:21])) %&gt;%\n  mutate(`DEPENDENCY`=(`YOUNG` + `AGED`)/ `ECONOMY ACTIVE`) %&gt;% \n  select(`PA`, `SZ`, `YOUNG`, \n         `ECONOMY ACTIVE`, `AGED`,\n         `TOTAL`, `DEPENDENCY`)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#joining-popdata2023-and-mpsz19_shp",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#joining-popdata2023-and-mpsz19_shp",
-    "title": "In-class Exercise 1",
-    "section": "8.3 Joining popdata2023 and mpsz19_shp",
-    "text": "8.3 Joining popdata2023 and mpsz19_shp\n\npopdata2023 &lt;- popdata2023 %&gt;%\n  mutate_at(.vars = vars(PA, SZ), \n          .funs = list(toupper)) \n\n\nmpsz_pop2023 &lt;- left_join(mpsz19_shp, popdata2023,\n                          by = c(\"SUBZONE_N\" = \"SZ\"))\n\n\npop2023_mpsz &lt;- left_join(popdata2023, mpsz19_shp, \n                          by = c(\"SZ\" = \"SUBZONE_N\"))"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-percentile-map",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-percentile-map",
-    "title": "In-class Exercise 1",
-    "section": "9.1 Analytical Map: Percentile Map",
-    "text": "9.1 Analytical Map: Percentile Map\n\nThe concept\nThe percentile map is a special type of quantile map with six specific categories: 0-1%, 1-10%, 10-50%, 50-90%, 90-99%, and 99-100%. The corresponding breakpoints can be derived by means of the base R quantile command, passing an explicit vector of cumulative probabilities as c(0, .01, .1, .5, .9, .99, 1). Note that the begin and endpoint need to be included.\n\n\nStep 1: Data Preparation\nThe code chunk below excludes records with NA by using the code chunk below.\n\nmpsz_pop2023 &lt;- mpsz_pop2023 %&gt;%\n  drop_na()\n\n\n\nStep 2: The get function\nThe code chunk below defines a function to get the input data and field to be used for creating the percentile map.\n\nget.var &lt;- function(vname,df) {\n  v &lt;- df[vname] %&gt;%\n    st_set_geometry(NULL)\n  \n  v &lt;- unname(v[,1])\n  return(v)\n}\n\n\n\nStep 3: A percentile mapping function\nThe code chunk below creates a function for computing and plotting the percentile map.\n\npercentmap &lt;- function(vnam, df, legtitle=NA, mtitle=\"Percentile Map\"){\n  percent &lt;- c(0,.01,.1,.5,.9,.99, 1)\n  var &lt;- get.var(vnam, df)\n  bperc &lt;- quantile(var, percent)\n  tm_shape(df) +\n  tm_polygons() +\n  tm_shape(df) +\n  tm_fill(vnam,\n          title=legtitle,\n          breaks=bperc,\n          palette=\"Blues\",\n          labels=c(\"&lt; 1%\", \"1% - 10%\", \"10% - 50%\", \"50% - 90%\", \"90% - 99%\", \"&gt; 99%\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"right\",\"bottom\"))\n}\n\n\n\nStep 4: Running the functions\nThe code chunk below runs the percentile map function.\n\nmpsz_pop2023 &lt;- st_as_sf(mpsz_pop2023)\npercentmap('DEPENDENCY', mpsz_pop2023)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-box-map",
-    "href": "In-class_Ex/In-class_Ex01/In-class_Ex01.html#analytical-map-box-map",
-    "title": "In-class Exercise 1",
-    "section": "9.2 Analytical Map: Box Map",
-    "text": "9.2 Analytical Map: Box Map\n\nThe Concept\nIn essence, a box map is an augmented quartile map, with an additional lower and upper category. When there are lower outliers, then the starting point for the breaks is the minimum value, and the second break is the lower fence. In contrast, when there are no lower outliers, then the starting point for the breaks will be the lower fence, and the second break is the minimum value (there will be no observations that fall in the interval between the lower fence and the minimum value).\n\nggplot(data = mpsz_pop2023,\n       aes(x = \"\",\n           y = DEPENDENCY)) +\n  geom_boxplot()\n\n\n\n\n\n\n\n\n\n\nStep 1: Creating the boxbreaks function\nThe code chunk on the right is an R function that creating break points for a box map.\n\narguments:\n\nv: vector with observations\nmult: multiplier for IQR (default 1.5) returns: bb: vector with 7 break points compute quartile and fences\n\nreturns:\n\nbb: vector with 7 break points compute quartile and fences\n\n\n\nboxbreaks &lt;- function(v,mult=1.5) {\n  qv &lt;- unname(quantile(v))\n  iqr &lt;- qv[4] - qv[2]\n  upfence &lt;- qv[4] + mult * iqr\n  lofence &lt;- qv[2] - mult * iqr\n  # initialize break points vector\n  bb &lt;- vector(mode=\"numeric\",length=7)\n  # logic for lower and upper fences\n  if (lofence &lt; qv[1]) {  # no lower outliers\n    bb[1] &lt;- lofence\n    bb[2] &lt;- floor(qv[1])\n  } else {\n    bb[2] &lt;- lofence\n    bb[1] &lt;- qv[1]\n  }\n  if (upfence &gt; qv[5]) { # no upper outliers\n    bb[7] &lt;- upfence\n    bb[6] &lt;- ceiling(qv[5])\n  } else {\n    bb[6] &lt;- upfence\n    bb[7] &lt;- qv[5]\n  }\n  bb[3:5] &lt;- qv[2:4]\n  return(bb)\n}\n\n\n\nStep 2: Creating the get.var function\nThe code chunk on the right an R function to extract a variable as a vector out of an sf data frame.\n\narguments:\n\nvname: variable name (as character, in quotes)\ndf: name of sf data frame\n\nreturns:\n\nv: vector with values (without a column name)\n\n\n\nget.var &lt;- function(vname,df) {\n  v &lt;- df[vname] %&gt;% st_set_geometry(NULL)\n  v &lt;- unname(v[,1])\n  return(v)\n}\n\n\n\nStep 3: Boxmap function\nThe code chunk on the right is an R function to create a box map.\n\narguments:\n\nvnam: variable name (as character, in quotes)\ndf: simple features polygon layer\nlegtitle: legend title\nmtitle: map title\nmult: multiplier for IQR\n\nreturns:\n\na tmap-element (plots a map)\n\n\n\nboxmap &lt;- function(vnam, df, \n                   legtitle=NA,\n                   mtitle=\"Box Map\",\n                   mult=1.5){\n  var &lt;- get.var(vnam,df)\n  bb &lt;- boxbreaks(var)\n  tm_shape(df) +\n    tm_polygons() +\n  tm_shape(df) +\n     tm_fill(vnam,title=legtitle,\n             breaks=bb,\n             palette=\"Blues\",\n          labels = c(\"lower outlier\", \n                     \"&lt; 25%\", \n                     \"25% - 50%\", \n                     \"50% - 75%\",\n                     \"&gt; 75%\", \n                     \"upper outlier\"))  +\n  tm_borders() +\n  tm_layout(main.title = mtitle, \n            title.position = c(\"left\",\n                               \"top\"))\n}\n\n\n\nStep 4: Plotting Box Map\n\nboxmap(\"DEPENDENCY\", mpsz_pop2023)\n\n\n\n\n\n\n\n\n\ntmap_options(check.and.fix = TRUE)\ntmap_mode(\"view\")\nboxmap(\"DEPENDENCY\", mpsz_pop2023)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
-    "href": "In-class_Ex/In-class_Ex02/In-class_Ex02.html",
-    "title": "In-class Exercise 2",
-    "section": "",
-    "text": "1. Getting started\n\npacman::p_load(sf, raster, spatstat, tmap, tidyverse, maptools)\n\n\n\n2. Importing the spatial data\n\nchildcare_sf &lt;- st_read(\"data/child-care-services-geojson.geojson\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `child-care-services-geojson' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data\\child-care-services-geojson.geojson' \n  using driver `GeoJSON'\nSimple feature collection with 1545 features and 2 fields\nGeometry type: POINT\nDimension:     XYZ\nBounding box:  xmin: 103.6824 ymin: 1.248403 xmax: 103.9897 ymax: 1.462134\nz_range:       zmin: 0 zmax: 0\nGeodetic CRS:  WGS 84\n\n\n\nsg_sf &lt;- st_read(dsn = \"data\", layer=\"CostalOutline\")%&gt;%\n  st_transform(crs = 3414)\n\nReading layer `CostalOutline' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 60 features and 4 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 2663.926 ymin: 16357.98 xmax: 56047.79 ymax: 50244.03\nProjected CRS: SVY21\n\n\n\nmpsz_sf &lt;- st_read(dsn = \"data\", \n                layer = \"MP14_SUBZONE_WEB_PL\")%&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MP14_SUBZONE_WEB_PL' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex02\\data' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\n\n\n3. Some insights and guidance\nWorking with st_union()\nThe code chunk below, st_union() is used to derive the coastal outline of sf tibble data.frame\n\nsg_sf &lt;- mpsz_sf %&gt;%\n  st_union()\n\nsg_sf will look similar to the code below\n\nplot(sg_sf)\n\n\n\n\n\n\n\n\nSince maptools expired, we could use the code below instead of as.SpatialGridDataFrame.im()\n\ngridded_kde_childcareSG_bw &lt;- as(kde_childcareSG.bw, \"SpatialGridDataFrame\")\nplot(gridded_kde_childcareSG_bw)\nspplot(gridded_kde_childcareSG_bw)\n\nFor Monte Carlo simulation use\n\nset.seed(1234)\n\nUse Edge correction method of spatstat to reduce biases of spatial graphs\n\n\n4. Take-home Exercise 1\nThe study area is Bangkok Metropolitan Region\n\n\n\n\n\n\nTip\n\n\n\nThe WGS84/UTM zone 47N the EPSG code is 32647\n\n\nThe data Thai traffic accident 2019 - 2022\nUse the code below to import the data\n\naccident_data &lt;- read_csv(\"data/thai_road_accident_2019_2022.csv\")%&gt;%\n  filter(!is.na(longitude) & longitude != \"\",\n         !is.na(latitude) & latitude != \"\") %&gt;%\n  st_as_sf(coords = c(\"longitude\", \"latitude\"), \n           crs = 4326) %&gt;%\n  st_transform(crs = 32647)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex03/In-class_Ex03.html",
-    "href": "In-class_Ex/In-class_Ex03/In-class_Ex03.html",
-    "title": "In-class Exercise 3",
-    "section": "",
-    "text": "1. Getting started"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html",
-    "title": "In-class Exercise 5",
-    "section": "",
-    "text": "The below 4 packages will be used\n\npacman::p_load(sf, tmap, sfdep, tidyverse)"
-  },
-  {
-    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html",
-    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html",
-    "title": "Take-home Exercise 1",
-    "section": "",
-    "text": "Previous studies have demonstrated the significant potential of Spatial Point Patterns Analysis (SPPA) in exploring and identifying factors influencing road traffic accidents. However, these studies often focus solely on either behavioral or environmental factors, with limited consideration of temporal factors such as season, day of the week, or time of day.\n\nIn view of this, I am tasked to discover factors affecting road traffic accidents in the Bangkok Metropolitan Region BMR by employing both spatial spatio-temporal point patterns analysis methods.\n\nThe specific objectives of this take-home exercise are as follows:\n\nTo visualize the spatio-temporal dynamics of road traffic accidents in BMR using appropriate statistical graphics and geovisualization methods.\nTo conduct detailed spatial analysis of road traffic accidents using appropriate Network Spatial Point Patterns Analysis methods.\nTo conduct detailed spatio-temporal analysis of road traffic accidents using appropriate Temporal Network Spatial Point Patterns Analysis methods."
-  },
-  {
-    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#importing-and-wrangling-the-data",
-    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#importing-and-wrangling-the-data",
-    "title": "Take-home Exercise 1",
-    "section": "Importing and wrangling the data",
-    "text": "Importing and wrangling the data\nThe below code would import the Thailand Road Accident (2019-2022), make changes to the coordinates by filtering out the ones with empty or NA coordinates then filter out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647. The operation would also create 2 new columns that has the Month and the Year of the date accidents occured. This step would create accident_data_sf\n\naccident_data_sf &lt;- read_csv(\"data/nongeo/thai_road_accident_2019_2022.csv\") %&gt;%\n  filter(!is.na(longitude) & longitude != \"\",\n         !is.na(latitude) & latitude != \"\") %&gt;%\n  st_as_sf(coords = c(\"longitude\", \"latitude\"), \n           crs = 4326) %&gt;%\n  filter(province_en %in% list(\"Bangkok\", \"Nonthaburi\", \n                                           \"Nakhon Pathom\", \"Pathum Thani\", \n                                           \"Samut Prakan\", \"Samut Sakhon\")) %&gt;%\n  mutate(`incident_monthyear` = format(as.Date(`incident_datetime`), \"%Y/%m\")) %&gt;%\n  mutate(`incident_year` = format(as.Date(`incident_datetime`), \"%Y\")) %&gt;%\n  st_transform(crs = 32647)\n\n\nstr(accident_data_sf)\n\nsf [12,986 × 19] (S3: sf/tbl_df/tbl/data.frame)\n $ acc_code                   : num [1:12986] 571882 600001 605043 629691 571887 ...\n $ incident_datetime          : POSIXct[1:12986], format: \"2019-01-01 02:25:00\" \"2019-01-01 03:00:00\" ...\n $ report_datetime            : POSIXct[1:12986], format: \"2019-01-02 17:32:00\" \"2019-01-05 10:33:00\" ...\n $ province_th                : chr [1:12986] \"นครปฐม\" \"นนทบุรี\" \"สมุทรปราการ\" \"กรุงเทพมหานคร\" ...\n $ province_en                : chr [1:12986] \"Nakhon Pathom\" \"Nonthaburi\" \"Samut Prakan\" \"Bangkok\" ...\n $ agency                     : chr [1:12986] \"department of rural roads\" \"department of highways\" \"department of highways\" \"expressway authority of thailand\" ...\n $ route                      : chr [1:12986] \"แยกทางหลวงหมายเลข 4 (กม.ที่ 51+920) - บ้านวัดละมุด\" \"คลองวัดแดง - บางบัวทอง\" \"ราษฎร์บูรณะ - พระสมุทรเจดีย์\" \"บางพลี-สุขสวัสดิ์\" ...\n $ vehicle_type               : chr [1:12986] \"motorcycle\" \"private/passenger car\" \"private/passenger car\" \"other\" ...\n $ presumed_cause             : chr [1:12986] \"speeding\" \"speeding\" \"running red lights/traffic signals\" \"other\" ...\n $ accident_type              : chr [1:12986] \"rollover/fallen on straight road\" \"rollover/fallen on straight road\" \"collision at intersection corner\" \"other\" ...\n $ number_of_vehicles_involved: num [1:12986] 1 1 2 1 1 1 1 1 1 1 ...\n $ number_of_fatalities       : num [1:12986] 0 0 0 0 0 1 1 0 0 0 ...\n $ number_of_injuries         : num [1:12986] 2 1 0 1 1 0 0 0 0 1 ...\n $ weather_condition          : chr [1:12986] \"clear\" \"clear\" \"clear\" \"clear\" ...\n $ road_description           : chr [1:12986] \"straight road\" \"straight road\" \"other\" \"other\" ...\n $ slope_description          : chr [1:12986] \"no slope\" \"no slope\" \"other\" \"other\" ...\n $ geometry                   :sfc_POINT of length 12986; first list element:  'XY' num [1:2] 627012 1533381\n $ incident_monthyear         : chr [1:12986] \"2019/01\" \"2019/01\" \"2019/01\" \"2019/01\" ...\n $ incident_year              : chr [1:12986] \"2019\" \"2019\" \"2019\" \"2019\" ...\n - attr(*, \"sf_column\")= chr \"geometry\"\n - attr(*, \"agr\")= Factor w/ 3 levels \"constant\",\"aggregate\",..: NA NA NA NA NA NA NA NA NA NA ...\n  ..- attr(*, \"names\")= chr [1:18] \"acc_code\" \"incident_datetime\" \"report_datetime\" \"province_th\" ...\n\n\nThis part is to import Thailand Roads (OpenStreetMap Export) and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create THR_sf\n\nTHR_sf &lt;- st_read(dsn = \"data/geo\", \n                         layer = \"hotosm_tha_roads_lines_shp\")\n\nReading layer `hotosm_tha_roads_lines_shp' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\Take-home_Ex\\Take-home_Ex01\\data\\geo' \n  using driver `ESRI Shapefile'\nSimple feature collection with 2792590 features and 14 fields\nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 97.34457 ymin: 5.643645 xmax: 105.6528 ymax: 20.47168\nCRS:           NA\n\nTHR_sf &lt;-  st_set_crs(THR_sf, 32647)\n\nThis part is to import Thailand - Subnational Administrative Boundaries as well as filtering out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create THSAB_sf\n\nTHSAB_sf &lt;- st_read(dsn = \"data/geo\", \n                         layer = \"tha_admbnda_adm2_rtsd_20220121\") %&gt;%\n  filter(ADM1_EN %in% list(\"Bangkok\", \"Nonthaburi\", \"Nakhon Pathom\",\n                      \"Pathum Thani\", \"Samut Prakan\", \"Samut Sakhon\")) %&gt;%\n  st_transform(crs = 32647)\n\nReading layer `tha_admbnda_adm2_rtsd_20220121' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\Take-home_Ex\\Take-home_Ex01\\data\\geo' \n  using driver `ESRI Shapefile'\nSimple feature collection with 928 features and 19 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 97.34336 ymin: 5.613038 xmax: 105.637 ymax: 20.46507\nGeodetic CRS:  WGS 84"
-  },
-  {
-    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#quick-analysis",
-    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#quick-analysis",
-    "title": "Take-home Exercise 1",
-    "section": "4.1 Quick analysis",
-    "text": "4.1 Quick analysis\nNow let’s take a quick look at temporal distribution of accidents data. The idea of this is to identify whether there is any identifiable temporal patterns in the distribution of accidents.\nTo to this I will be plotting a bar chart showing the counts of accidents months on end from 2019 to 2022.\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = incident_monthyear), \n                 bin = 100, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Time\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above graph review that accident tends to peak around January April, July, October and December. Interestingly, these period seems to coincide with holidays seasons in Thailand.\n\n\nBut what about the year by year number of cases ?\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = incident_year),\n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Province\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above graph review that number of accidents are around the same over the year and does not seem to be getting better.\n\n\nBut how about the distribution of cases of the different region within the review region?\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = province_en),\n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Province\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above results shown that majority of accidents cases from 2019 to 2022 is actually from Bangkok province itself which does make sense since the concentration of population are probably in this region as well which leads to higher traffics\n\n\nThe graphs below are showcasing the Distribution of accidents in different scale from overall to year by year and to month by year\n\ntmap_mode('plot')\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.01, \"red\") +\ntm_layout(main.title = \"Distribution of accidents\")\n\n\n\n\n\n\n\n# tm_shape(THR_sf) +\n#   tm_lines()\n\n\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.01, \"red\") +\ntm_facets(by = \"incident_year\",\n          free.coords = FALSE,\n          free.scales = FALSE,\n          drop.units = TRUE) +\ntm_layout(main.title = \"Distribution of accidents by year\")\n\n\n\n\n\n\n\n\n\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.1, \"red\") +\ntm_facets(by = \"incident_monthyear\",\n          free.coords = FALSE,\n          free.scales = FALSE,\n          drop.units = TRUE,\n          ncol = 12,\n          nrow = 4)+\ntm_layout(main.title = \"Distribution of accidents by month by year\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe most comprehensive one are probably the month by year distribution which showcase the changes of distribution of accidents depending on the period and different seasons"
-  },
-  {
-    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#first-order-spatial-point-patterns-analysis",
-    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#first-order-spatial-point-patterns-analysis",
-    "title": "Take-home Exercise 1",
-    "section": "4.2 First-order Spatial Point Patterns Analysis",
-    "text": "4.2 First-order Spatial Point Patterns Analysis\nKernel Density Estimation\n\nGeospatial Data wrangling\nThe code chunk below uses as_Spatial() of sf package to convert the three geospatial data from simple feature data frame to sp’s Spatial* class.\n\naccident_data &lt;- as_Spatial(accident_data_sf)\nTHSAB &lt;- as_Spatial(THSAB_sf)\n\nspatstat requires the analytical data in ppp object form. There is no direct way to convert a Spatial* classes into ppp object. We need to convert the Spatial classes* into Spatial object first.\nThe codes chunk below converts the Spatial* classes into generic sp objects.\n\naccident_data_sp &lt;- as(accident_data, \"SpatialPoints\")\nTHSAB_sp &lt;- as(THSAB, \"SpatialPolygons\")\n\nWe can check the duplication in a ppp object by using the code chunk below.\n\naccident_data_ppp &lt;- as.ppp(accident_data_sf)\nany(duplicated(accident_data_ppp))\n\n[1] FALSE\n\n\nSince the results return false there’s no duplicated points in the data\n\nplot(accident_data_ppp)\n\n\n\n\n\n\n\n\n\n\nCreating owin object\nThe code chunk below is used to covert the SpatialPolygon object into owin object of spatstat\n\nTHSAB_owin &lt;- as.owin(THSAB_sf)\n\n\n\nRescalling KDE values\nwe will extract childcare events that are located within the review region and re-scale the unit of measurement from meter to kilometer by using the code chunk below.\n\naccident_data_owin_ppp &lt;- accident_data_ppp[THSAB_owin]\naccident_data_owin_ppp.km &lt;- rescale.ppp(accident_data_owin_ppp, 1000, \"km\")\n\nNow, we can run density() using the resale data set and plot the output kde map. In this case I’ll be using bw.diggle() since it seems to be working best\n\nkde_accident_data_bw &lt;- density(accident_data_owin_ppp.km,\n                              sigma=bw.diggle,\n                              edge=TRUE,\n                              kernel=\"gaussian\") \nplot(kde_accident_data_bw, main = \"Fixed bandwidth\")\n\n\n\n\n\n\n\n\nTo compared the above method I’ll also be running another density using adaptive method\n\nkde_accident_data_adaptive &lt;- adaptive.density(accident_data_owin_ppp.km, method=\"kernel\")\nplot(kde_accident_data_adaptive, main = \"Adaptive bandwidth\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nBoth graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period. The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon\n\n\n\n\nTesting spatial point patterns using Clark and Evans Test\n\nclarkevans.test(accident_data_ppp,\n                correction=\"none\",\n                clipregion=\"THSAB_owin\",\n                alternative=c(\"clustered\"),\n                nsim=99)\n\n\n    Clark-Evans test\n    No edge correction\n    Z-test\n\ndata:  accident_data_ppp\nR = 0.16207, p-value &lt; 2.2e-16\nalternative hypothesis: clustered (R &lt; 1)\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results, we rejected the null hypothesis that the point patterns are randomly distributed."
-  },
-  {
-    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#second-order-spatial-point-patterns-analysis",
-    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#second-order-spatial-point-patterns-analysis",
-    "title": "Take-home Exercise 1",
-    "section": "4.3 Second-order Spatial Point Patterns Analysis",
-    "text": "4.3 Second-order Spatial Point Patterns Analysis\n\nAnalysing Spatial Point Process Using G-Function\n\nG_CK = Gest(accident_data_ppp, correction = \"border\")\nplot(G_CK, xlim=c(0,2000))\n\n\n\n\n\n\n\n\n\n\nPerforming Complete Spatial Randomness Test Using G-Function\n\nG_CK.csr &lt;- envelope(accident_data_ppp, Gest, nsim = 999)\n\nGenerating 999 simulations of CSR  ...\n1, 2, 3, ......10.........20.........30.........40.........50.........60..\n.......70.........80.........90.........100.........110.........120.........130\n.........140.........150.........160.........170.........180.........190........\n.200.........210.........220.........230.........240.........250.........260......\n...270.........280.........290.........300.........310.........320.........330....\n.....340.........350.........360.........370.........380.........390.........400..\n.......410.........420.........430.........440.........450.........460.........470\n.........480.........490.........500.........510.........520.........530........\n.540.........550.........560.........570.........580.........590.........600......\n...610.........620.........630.........640.........650.........660.........670....\n.....680.........690.........700.........710.........720.........730.........740..\n.......750.........760.........770.........780.........790.........800.........810\n.........820.........830.........840.........850.........860.........870........\n.880.........890.........900.........910.........920.........930.........940......\n...950.........960.........970.........980.........990........\n999.\n\nDone.\n\nplot(G_CK.csr)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed. The estimated G(r) lies above the upper envelope, the estimated G(r) is statistically significant\n\n\n\n\nAnalysing Spatial Point Process Using F-Function\n\nF_CK = Fest(accident_data_ppp)\nplot(F_CK)\n\n\n\n\n\n\n\n\n\n\nPerforming Complete Spatial Randomness Test Using F-Function\n\nF_CK.csr &lt;- envelope(accident_data_ppp, Fest, nsim = 999)\n\nGenerating 999 simulations of CSR  ...\n1, 2, 3, ......10.........20.........30.........40.........50.........60..\n.......70.........80.........90.........100.........110.........120.........130\n.........140.........150.........160.........170.........180.........190........\n.200.........210.........220.........230.........240.........250.........260......\n...270.........280.........290.........300.........310.........320.........330....\n.....340.........350.........360.........370.........380.........390.........400..\n.......410.........420.........430.........440.........450.........460.........470\n.........480.........490.........500.........510.........520.........530........\n.540.........550.........560.........570.........580.........590.........600......\n...610.........620.........630.........640.........650.........660.........670....\n.....680.........690.........700.........710.........720.........730.........740..\n.......750.........760.........770.........780.........790.........800.........810\n.........820.........830.........840.........850.........860.........870........\n.880.........890.........900.........910.........920.........930.........940......\n...950.........960.........970.........980.........990........\n999.\n\nDone.\n\nplot(F_CK.csr)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising",
-    "title": "In-class Exercise 5",
-    "section": "Visualising",
-    "text": "Visualising\n\ntm_shape(hunan_GDPPC) +\n  tm_fill(\"GDPPC\",\n          n = 5,\n          palette=\"Blues\",\n          style = \"equal\") +\n  tm_borders(alpha = 0.5) +\n  tm_layout(main.title = \"Distribution of GDPPC\")"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#diriving-queens-continuity-weights-sfdep-methods",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#diriving-queens-continuity-weights-sfdep-methods",
-    "title": "In-class Exercise 5",
-    "section": "3.1 Diriving Queen’s continuity weights: sfdep methods",
-    "text": "3.1 Diriving Queen’s continuity weights: sfdep methods\n\nnb: a neighbor list objects as created by st_neighbors().\nstyle: default “W” for row stadarized weights\nallow_zero: if TRUE assisgns zero as lagged value to zone without neighbors\n\n\nwm_q &lt;- hunan_GDPPC %&gt;%\n  mutate(nb = st_contiguity(geometry),\n         wt = st_weights(nb,\n                         style = \"W\"),\n         .before = 1)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-global-morans-i",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-global-morans-i",
-    "title": "In-class Exercise 5",
-    "section": "3.2 Computing global Moran’s I",
-    "text": "3.2 Computing global Moran’s I\n\nmoranI &lt;- global_moran(wm_q$GDPPC,\n                       wm_q$nb,\n                       wm_q$wt)\nmoranI\n\n$I\n[1] 0.30075\n\n$K\n[1] 7.640659"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morani-test",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morani-test",
-    "title": "In-class Exercise 5",
-    "section": "3.3 Performing Global Moran’I test",
-    "text": "3.3 Performing Global Moran’I test\n\nglobal_moran_test(wm_q$GDPPC,\n                  wm_q$nb,\n                  wm_q$wt)\n\n\n    Moran I test under randomisation\n\ndata:  x  \nweights: listw    \n\nMoran I statistic standard deviate = 4.7351, p-value = 1.095e-06\nalternative hypothesis: greater\nsample estimates:\nMoran I statistic       Expectation          Variance \n      0.300749970      -0.011494253       0.004348351 \n\n\n\n\n\n\n\n\nTip\n\n\n\nSince p-value &lt; 0.05 based on the above result, we could reject the null hypothesis"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morans-i-permutation-test",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#performing-global-morans-i-permutation-test",
-    "title": "In-class Exercise 5",
-    "section": "3.4 Performing Global Moran’s I permutation test",
-    "text": "3.4 Performing Global Moran’s I permutation test\n\nStep 1:Step 2:Result:\n\n\n\nset.seed(1234)\n\n\n\n\nglobal_moran_perm(wm_q$GDPPC,\n                  wm_q$nb,\n                  wm_q$wt,\n                  nsim = 99)\n\n\n\n\n\n\n    Monte-Carlo simulation of Moran I\n\ndata:  x \nweights: listw  \nnumber of simulations + 1: 100 \n\nstatistic = 0.30075, observed rank = 100, p-value &lt; 2.2e-16\nalternative hypothesis: two.sided"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-morans-i",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-morans-i",
-    "title": "In-class Exercise 5",
-    "section": "3.5 Computing local Moran’s I",
-    "text": "3.5 Computing local Moran’s I\nWe will learn to calculate local Moran’s I using local_moran()\n\nThe codeThe ouput\n\n\n\nlisa &lt;- wm_q %&gt;%\n  mutate(local_moran = local_moran(GDPPC,\n                                   nb,\n                                   wt,\n                                   nsim = 99),\n         .before = 1) %&gt;%\n  unnest(local_moran)\n\n\n\n\nhead(lisa)\n\nSimple feature collection with 6 features and 20 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 110.4922 ymin: 28.61762 xmax: 112.3013 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 6 × 21\n        ii        eii     var_ii    z_ii  p_ii p_ii_sim p_folded_sim skewness\n     &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;    &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;\n1 -0.00147  0.00177   0.000418   -0.158  0.874     0.82         0.41   -0.812\n2  0.0259   0.00641   0.0105      0.190  0.849     0.96         0.48   -1.09 \n3 -0.0120  -0.0374    0.102       0.0796 0.937     0.76         0.38    0.824\n4  0.00102 -0.0000349 0.00000437  0.506  0.613     0.64         0.32    1.04 \n5  0.0148  -0.00340   0.00165     0.449  0.654     0.5          0.25    1.64 \n6 -0.0388  -0.00339   0.00545    -0.480  0.631     0.82         0.41    0.614\n# ℹ 13 more variables: kurtosis &lt;dbl&gt;, mean &lt;fct&gt;, median &lt;fct&gt;, pysal &lt;fct&gt;,\n#   nb &lt;nb&gt;, wt &lt;list&gt;, NAME_2 &lt;chr&gt;, ID_3 &lt;int&gt;, NAME_3 &lt;chr&gt;,\n#   ENGTYPE_3 &lt;chr&gt;, County &lt;chr&gt;, GDPPC &lt;dbl&gt;, geometry &lt;POLYGON [°]&gt;"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualizing-local-morans-i",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualizing-local-morans-i",
-    "title": "In-class Exercise 5",
-    "section": "3.6 Visualizing local Moran’s I",
-    "text": "3.6 Visualizing local Moran’s I\n\ntmap_mode('plot')\n\ntm_shape(lisa) +\n  tm_fill('ii') +\n  tm_borders(alpha = 0.5) +\n  tm_view(set.zoom.limits = c(6,8)) +\n  tm_layout(main.title = \"local Moran's I of GDPPC\",\n            main.title.size = 2)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-local-morans-i-and-p-value",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-local-morans-i-and-p-value",
-    "title": "In-class Exercise 5",
-    "section": "3.7 Visualising local Moran’s I and p-value",
-    "text": "3.7 Visualising local Moran’s I and p-value\n\nmap1 &lt;- tm_shape(lisa) +\n          tm_fill('ii') +\n          tm_borders(alpha = 0.5) +\n          tm_view(set.zoom.limits = c(6,8)) +\n          tm_layout(main.title = \"local Moran's I of GDPPC\",\n                    main.title.size = 0.8)\n\nmap2 &lt;- tm_shape(lisa) +\n          tm_fill('p_ii',\n                  breaks=c(-Inf, 0.001, 0.01, 0.05, Inf)) +\n          tm_borders(alpha = 0.5) +\n          tm_layout(main.title = \"p_value of local Moran's I of GDPPC\",\n                    main.title.size = 0.8)\n\ntmap_arrange(map1, map2, asp=1, ncol=2)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-lisa-map",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-lisa-map",
-    "title": "In-class Exercise 5",
-    "section": "3.8 Visualising LISA map",
-    "text": "3.8 Visualising LISA map\n\nlisa_sig &lt;-lisa %&gt;%\n  filter(p_ii &lt; 0.05)\n\ntmap_mode('plot')\n\ntm_shape(lisa) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\n  tm_shape(lisa_sig) +\n  tm_fill(\"mean\") +\n  tm_borders(alpha = 0.4)"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-gi-statistics",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#computing-local-gi-statistics",
-    "title": "In-class Exercise 5",
-    "section": "3.9 Computing local Gi* Statistics",
-    "text": "3.9 Computing local Gi* Statistics\n\nwm_idw &lt;- hunan_GDPPC %&gt;%\n  mutate(nb = st_contiguity(geometry),\n         wt = st_inverse_distance(nb,\n                                  geometry,\n                                  scale = 1,\n                                  alpha = 1),\n         .before = 1)\n\nNow we compute local Gi* by using the code chunk below\n\nHCSA &lt;- wm_idw %&gt;%\n  mutate(local_Gi = local_gstar_perm(GDPPC,\n                                     nb,\n                                     wt,\n                                     nsim = 99),\n         .before = 1) %&gt;%\n  unnest(local_Gi)\n\nHCSA\n\nSimple feature collection with 88 features and 18 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 108.7831 ymin: 24.6342 xmax: 114.2544 ymax: 30.12812\nGeodetic CRS:  WGS 84\n# A tibble: 88 × 19\n   gi_star cluster   e_gi     var_gi std_dev p_value p_sim p_folded_sim skewness\n     &lt;dbl&gt; &lt;fct&gt;    &lt;dbl&gt;      &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;    &lt;dbl&gt;\n 1  0.0416 Low     0.0114 0.00000641  0.0493 9.61e-1  0.7          0.35    0.875\n 2 -0.333  Low     0.0106 0.00000384 -0.0941 9.25e-1  1            0.5     0.661\n 3  0.281  High    0.0126 0.00000751 -0.151  8.80e-1  0.9          0.45    0.640\n 4  0.411  High    0.0118 0.00000922  0.264  7.92e-1  0.6          0.3     0.853\n 5  0.387  High    0.0115 0.00000956  0.339  7.34e-1  0.62         0.31    1.07 \n 6 -0.368  High    0.0118 0.00000591 -0.583  5.60e-1  0.72         0.36    0.594\n 7  3.56   High    0.0151 0.00000731  2.61   9.01e-3  0.06         0.03    1.09 \n 8  2.52   High    0.0136 0.00000614  1.49   1.35e-1  0.2          0.1     1.12 \n 9  4.56   High    0.0144 0.00000584  3.53   4.17e-4  0.04         0.02    1.23 \n10  1.16   Low     0.0104 0.00000370  1.82   6.86e-2  0.12         0.06    0.416\n# ℹ 78 more rows\n# ℹ 10 more variables: kurtosis &lt;dbl&gt;, nb &lt;nb&gt;, wt &lt;list&gt;, NAME_2 &lt;chr&gt;,\n#   ID_3 &lt;int&gt;, NAME_3 &lt;chr&gt;, ENGTYPE_3 &lt;chr&gt;, County &lt;chr&gt;, GDPPC &lt;dbl&gt;,\n#   geometry &lt;POLYGON [°]&gt;"
-  },
-  {
-    "objectID": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-gi",
-    "href": "In-class_Ex/In-class_Ex05/In-class_Ex05.html#visualising-gi",
-    "title": "In-class Exercise 5",
-    "section": "3.10 Visualising Gi*",
-    "text": "3.10 Visualising Gi*\n\ntmap_mode('plot')\n\ntm_shape(HCSA) +\n  tm_fill(\"gi_star\") +\n  tm_borders(alpha = 0.5)\n\n\n\n\n\n\n\n\n\nHCSA_sig &lt;-HCSA %&gt;%\n  filter(p_sim &lt; 0.05)\n\ntmap_mode('plot')\n\ntm_shape(HCSA) +\n  tm_polygons() +\n  tm_borders(alpha = 0.5) +\n  tm_shape(HCSA_sig) +\n  tm_fill(\"cluster\") +\n  tm_borders(alpha = 0.5)"
-  },
-  {
     "objectID": "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html#the-analytical-question",
     "href": "Hands-on_Ex/Hands-on_Ex06/Hands-on_Ex06.html#the-analytical-question",
     "title": "Hands-on Exercise 6 Geographical Segmentation with Spatially Constrained Clustering Techniques",
@@ -1377,5 +1307,89 @@
     "title": "Hands-on Exercise 6 Geographical Segmentation with Spatially Constrained Clustering Techniques",
     "section": "10.2 Multivariate Visualisation",
     "text": "10.2 Multivariate Visualisation\nPast studies shown that parallel coordinate plot can be used to reveal clustering variables by cluster very effectively. In the code chunk below, ggparcoord() of GGally package\n\nggparcoord(data = shan_sf_ngeo_cluster, \n           columns = c(17:21), \n           scale = \"globalminmax\",\n           alphaLines = 0.2,\n           boxplot = TRUE, \n           title = \"Multiple Parallel Coordinates Plots of ICT Variables by Cluster\") +\n  facet_grid(~ CLUSTER) + \n  theme(axis.text.x = element_text(angle = 30))\n\n\n\n\n\n\n\n\nThe parallel coordinate plot above reveals that households in Cluster 4 townships tend to own the highest number of TV and mobile-phone. On the other hand, households in Cluster 5 tends to own the lowest of all the five ICT.\nNote that the scale argument of ggparcoor() provide several methods to scale the clustering variables. They are:\n\nstd: univariately, subtract mean and divide by standard deviation.\nrobust: univariately, subtract median and divide by median absolute deviation.\nuniminmax: univariately, scale so the minimum of the variable is zero, and the maximum is one.\nglobalminmax: no scaling is done; the range of the graphs is defined by the global minimum and the global maximum.\ncenter: use uniminmax to standardize vertical height, then center each variable at a value specified by the scaleSummary param.\ncenterObs: use uniminmax to standardize vertical height, then center each variable at the value of the observation specified by the centerObsID param\n\nThere is no one best scaling method to use. You should explore them and select the one that best meet your analysis need.\nLast but not least, we can also compute the summary statistics such as mean, median, sd, etc to complement the visual interpretation.\nIn the code chunk below, group_by() and summarise() of dplyr are used to derive mean values of the clustering variables.\n\nshan_sf_ngeo_cluster %&gt;% \n  st_set_geometry(NULL) %&gt;%\n  group_by(CLUSTER) %&gt;%\n  summarise(mean_RADIO_PR = mean(RADIO_PR),\n            mean_TV_PR = mean(TV_PR),\n            mean_LLPHONE_PR = mean(LLPHONE_PR),\n            mean_MPHONE_PR = mean(MPHONE_PR),\n            mean_COMPUTER_PR = mean(COMPUTER_PR))\n\n# A tibble: 6 × 6\n  CLUSTER mean_RADIO_PR mean_TV_PR mean_LLPHONE_PR mean_MPHONE_PR\n  &lt;chr&gt;           &lt;dbl&gt;      &lt;dbl&gt;           &lt;dbl&gt;          &lt;dbl&gt;\n1 1               221.        521.            44.2           246.\n2 2               237.        402.            23.9           134.\n3 3               300.        611.            52.2           392.\n4 4               196.        744.            99.0           651.\n5 5               124.        224.            38.0           132.\n6 6                98.6       499.            74.5           468.\n# ℹ 1 more variable: mean_COMPUTER_PR &lt;dbl&gt;"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex01/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/In-class_Ex01/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS622-GAA",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex02/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/In-class_Ex02/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS622-GAA",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex03/data/geospatial/MPSZ-2019.html",
+    "href": "In-class_Ex/In-class_Ex03/data/geospatial/MPSZ-2019.html",
+    "title": "ISSS622-GAA",
+    "section": "",
+    "text": "&lt;!DOCTYPE qgis PUBLIC ‘http://mrcc.com/qgis.dtd’ ‘SYSTEM’&gt;     dataset\n\n\n        0 0     false"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html",
+    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html",
+    "title": "In-class Exercise 4",
+    "section": "",
+    "text": "pacman::p_load(sf, ggstatsplot, knitr, tmap, tidyverse, GWmodel)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#computing-geographically-weighted-summary-statistics",
+    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#computing-geographically-weighted-summary-statistics",
+    "title": "In-class Exercise 4",
+    "section": "3.1 Computing geographically weighted summary statistics",
+    "text": "3.1 Computing geographically weighted summary statistics\n\ngwstat &lt;- gwss(data = hunan_sp,\n               vars = \"GDPPC\",\n               bw = bw_AIC,\n               kernel = \"bisquare\",\n               adaptive = TRUE,\n               longlat = T)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#preparing-the-output-data",
+    "href": "In-class_Ex/In-class_Ex04/In-class_Ex04.html#preparing-the-output-data",
+    "title": "In-class Exercise 4",
+    "section": "3.2 Preparing the output data",
+    "text": "3.2 Preparing the output data\nCode chunk below to extract SDF data table from gwss object output from gwss() and converted to dataframe using as.data.frame()\n\ngwstat_df &lt;- as.data.frame(gwstat$SDF)\n\nNext use cbind() to append the dataframe to hunan dataframe. Be mindful that cbind() blindly append the data\n\nhunan_gstat &lt;- cbind(hunan, gwstat_df)\n\n\ntm_shape(hunan_gstat) +\n  tm_fill(\"GDPPC_LM\",\n          n = 5,\n          style = 'quantile') +\n  tm_borders(alpha = 1) +\n  tm_layout(main.title = \"Distribution of geographically weighted mean\",\n            main.title.position = \"center\",\n            main.title.size = 2.0,\n            legend.text.size = 1.2,\n            legend.height = 1.5,\n            legend.width = 1.5,\n            frame = TRUE)"
+  },
+  {
+    "objectID": "In-class_Ex/In-class_Ex06/In-class_Ex06.html",
+    "href": "In-class_Ex/In-class_Ex06/In-class_Ex06.html",
+    "title": "In-class Exercise 6",
+    "section": "",
+    "text": "1. Getting started"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html",
+    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html",
+    "title": "Take-home Exercise 1",
+    "section": "",
+    "text": "Previous studies have demonstrated the significant potential of Spatial Point Patterns Analysis (SPPA) in exploring and identifying factors influencing road traffic accidents. However, these studies often focus solely on either behavioral or environmental factors, with limited consideration of temporal factors such as season, day of the week, or time of day.\n\nIn view of this, I am tasked to discover factors affecting road traffic accidents in the Bangkok Metropolitan Region BMR by employing both spatial spatio-temporal point patterns analysis methods.\n\nThe specific objectives of this take-home exercise are as follows:\n\nTo visualize the spatio-temporal dynamics of road traffic accidents in BMR using appropriate statistical graphics and geovisualization methods.\nTo conduct detailed spatial analysis of road traffic accidents using appropriate Network Spatial Point Patterns Analysis methods.\nTo conduct detailed spatio-temporal analysis of road traffic accidents using appropriate Temporal Network Spatial Point Patterns Analysis methods."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#importing-and-wrangling-the-data",
+    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#importing-and-wrangling-the-data",
+    "title": "Take-home Exercise 1",
+    "section": "Importing and wrangling the data",
+    "text": "Importing and wrangling the data\nThe below code would import the Thailand Road Accident (2019-2022), make changes to the coordinates by filtering out the ones with empty or NA coordinates then filter out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647. The operation would also create 2 new columns that has the Month and the Year of the date accidents occured. This step would create accident_data_sf\n\naccident_data_sf &lt;- read_csv(\"data/nongeo/thai_road_accident_2019_2022.csv\") %&gt;%\n  filter(!is.na(longitude) & longitude != \"\",\n         !is.na(latitude) & latitude != \"\") %&gt;%\n  st_as_sf(coords = c(\"longitude\", \"latitude\"), \n           crs = 4326) %&gt;%\n  filter(province_en %in% list(\"Bangkok\", \"Nonthaburi\", \n                                           \"Nakhon Pathom\", \"Pathum Thani\", \n                                           \"Samut Prakan\", \"Samut Sakhon\")) %&gt;%\n  mutate(`incident_monthyear` = format(as.Date(`incident_datetime`), \"%Y/%m\")) %&gt;%\n  mutate(`incident_year` = format(as.Date(`incident_datetime`), \"%Y\")) %&gt;%\n  st_transform(crs = 32647)\n\n\nstr(accident_data_sf)\n\nsf [12,986 × 19] (S3: sf/tbl_df/tbl/data.frame)\n $ acc_code                   : num [1:12986] 571882 600001 605043 629691 571887 ...\n $ incident_datetime          : POSIXct[1:12986], format: \"2019-01-01 02:25:00\" \"2019-01-01 03:00:00\" ...\n $ report_datetime            : POSIXct[1:12986], format: \"2019-01-02 17:32:00\" \"2019-01-05 10:33:00\" ...\n $ province_th                : chr [1:12986] \"นครปฐม\" \"นนทบุรี\" \"สมุทรปราการ\" \"กรุงเทพมหานคร\" ...\n $ province_en                : chr [1:12986] \"Nakhon Pathom\" \"Nonthaburi\" \"Samut Prakan\" \"Bangkok\" ...\n $ agency                     : chr [1:12986] \"department of rural roads\" \"department of highways\" \"department of highways\" \"expressway authority of thailand\" ...\n $ route                      : chr [1:12986] \"แยกทางหลวงหมายเลข 4 (กม.ที่ 51+920) - บ้านวัดละมุด\" \"คลองวัดแดง - บางบัวทอง\" \"ราษฎร์บูรณะ - พระสมุทรเจดีย์\" \"บางพลี-สุขสวัสดิ์\" ...\n $ vehicle_type               : chr [1:12986] \"motorcycle\" \"private/passenger car\" \"private/passenger car\" \"other\" ...\n $ presumed_cause             : chr [1:12986] \"speeding\" \"speeding\" \"running red lights/traffic signals\" \"other\" ...\n $ accident_type              : chr [1:12986] \"rollover/fallen on straight road\" \"rollover/fallen on straight road\" \"collision at intersection corner\" \"other\" ...\n $ number_of_vehicles_involved: num [1:12986] 1 1 2 1 1 1 1 1 1 1 ...\n $ number_of_fatalities       : num [1:12986] 0 0 0 0 0 1 1 0 0 0 ...\n $ number_of_injuries         : num [1:12986] 2 1 0 1 1 0 0 0 0 1 ...\n $ weather_condition          : chr [1:12986] \"clear\" \"clear\" \"clear\" \"clear\" ...\n $ road_description           : chr [1:12986] \"straight road\" \"straight road\" \"other\" \"other\" ...\n $ slope_description          : chr [1:12986] \"no slope\" \"no slope\" \"other\" \"other\" ...\n $ geometry                   :sfc_POINT of length 12986; first list element:  'XY' num [1:2] 627012 1533381\n $ incident_monthyear         : chr [1:12986] \"2019/01\" \"2019/01\" \"2019/01\" \"2019/01\" ...\n $ incident_year              : chr [1:12986] \"2019\" \"2019\" \"2019\" \"2019\" ...\n - attr(*, \"sf_column\")= chr \"geometry\"\n - attr(*, \"agr\")= Factor w/ 3 levels \"constant\",\"aggregate\",..: NA NA NA NA NA NA NA NA NA NA ...\n  ..- attr(*, \"names\")= chr [1:18] \"acc_code\" \"incident_datetime\" \"report_datetime\" \"province_th\" ...\n\n\nThis part is to import Thailand Roads (OpenStreetMap Export) and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create THR_sf\n\nTHR_sf &lt;- st_read(dsn = \"data/geo\", \n                         layer = \"hotosm_tha_roads_lines_shp\")\n\nReading layer `hotosm_tha_roads_lines_shp' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\Take-home_Ex\\Take-home_Ex01\\data\\geo' \n  using driver `ESRI Shapefile'\nSimple feature collection with 2792590 features and 14 fields\nGeometry type: MULTILINESTRING\nDimension:     XY\nBounding box:  xmin: 97.34457 ymin: 5.643645 xmax: 105.6528 ymax: 20.47168\nCRS:           NA\n\nTHR_sf &lt;-  st_set_crs(THR_sf, 32647)\n\nThis part is to import Thailand - Subnational Administrative Boundaries as well as filtering out the region of study which is the Bangkok Metropolitan Region BMR and converting the projected coordinate system of data to WGS 84 / UTM zone 47N and the EPSG code is 32647 to create THSAB_sf\n\nTHSAB_sf &lt;- st_read(dsn = \"data/geo\", \n                         layer = \"tha_admbnda_adm2_rtsd_20220121\") %&gt;%\n  filter(ADM1_EN %in% list(\"Bangkok\", \"Nonthaburi\", \"Nakhon Pathom\",\n                      \"Pathum Thani\", \"Samut Prakan\", \"Samut Sakhon\")) %&gt;%\n  st_transform(crs = 32647)\n\nReading layer `tha_admbnda_adm2_rtsd_20220121' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\Take-home_Ex\\Take-home_Ex01\\data\\geo' \n  using driver `ESRI Shapefile'\nSimple feature collection with 928 features and 19 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 97.34336 ymin: 5.613038 xmax: 105.637 ymax: 20.46507\nGeodetic CRS:  WGS 84"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#quick-analysis",
+    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#quick-analysis",
+    "title": "Take-home Exercise 1",
+    "section": "4.1 Quick analysis",
+    "text": "4.1 Quick analysis\nNow let’s take a quick look at temporal distribution of accidents data. The idea of this is to identify whether there is any identifiable temporal patterns in the distribution of accidents.\nTo to this I will be plotting a bar chart showing the counts of accidents months on end from 2019 to 2022.\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = incident_monthyear), \n                 bin = 100, \n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Time\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above graph review that accident tends to peak around January April, July, October and December. Interestingly, these period seems to coincide with holidays seasons in Thailand.\n\n\nBut what about the year by year number of cases ?\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = incident_year),\n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Province\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above graph review that number of accidents are around the same over the year and does not seem to be getting better.\n\n\nBut how about the distribution of cases of the different region within the review region?\n\nggplot(accident_data_sf) +\n  geom_bar(aes(x = province_en),\n                 color=\"black\", \n                 fill=\"light blue\") +\n  xlab(\"Province\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe above results shown that majority of accidents cases from 2019 to 2022 is actually from Bangkok province itself which does make sense since the concentration of population are probably in this region as well which leads to higher traffics\n\n\nThe graphs below are showcasing the Distribution of accidents in different scale from overall to year by year and to month by year\n\ntmap_mode('plot')\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.01, \"red\") +\ntm_layout(main.title = \"Distribution of accidents\")\n\n\n\n\n\n\n\n# tm_shape(THR_sf) +\n#   tm_lines()\n\n\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.01, \"red\") +\ntm_facets(by = \"incident_year\",\n          free.coords = FALSE,\n          free.scales = FALSE,\n          drop.units = TRUE) +\ntm_layout(main.title = \"Distribution of accidents by year\")\n\n\n\n\n\n\n\n\n\ntm_shape(THSAB_sf) +\n  tm_polygons() +\ntm_shape(accident_data_sf) +\n  tm_dots(size = 0.1, \"red\") +\ntm_facets(by = \"incident_monthyear\",\n          free.coords = FALSE,\n          free.scales = FALSE,\n          drop.units = TRUE,\n          ncol = 12,\n          nrow = 4)+\ntm_layout(main.title = \"Distribution of accidents by month by year\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nThe most comprehensive one are probably the month by year distribution which showcase the changes of distribution of accidents depending on the period and different seasons"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#first-order-spatial-point-patterns-analysis",
+    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#first-order-spatial-point-patterns-analysis",
+    "title": "Take-home Exercise 1",
+    "section": "4.2 First-order Spatial Point Patterns Analysis",
+    "text": "4.2 First-order Spatial Point Patterns Analysis\nKernel Density Estimation\n\nGeospatial Data wrangling\nThe code chunk below uses as_Spatial() of sf package to convert the three geospatial data from simple feature data frame to sp’s Spatial* class.\n\naccident_data &lt;- as_Spatial(accident_data_sf)\nTHSAB &lt;- as_Spatial(THSAB_sf)\n\nspatstat requires the analytical data in ppp object form. There is no direct way to convert a Spatial* classes into ppp object. We need to convert the Spatial classes* into Spatial object first.\nThe codes chunk below converts the Spatial* classes into generic sp objects.\n\naccident_data_sp &lt;- as(accident_data, \"SpatialPoints\")\nTHSAB_sp &lt;- as(THSAB, \"SpatialPolygons\")\n\nWe can check the duplication in a ppp object by using the code chunk below.\n\naccident_data_ppp &lt;- as.ppp(accident_data_sf)\nany(duplicated(accident_data_ppp))\n\n[1] FALSE\n\n\nSince the results return false there’s no duplicated points in the data\n\nplot(accident_data_ppp)\n\n\n\n\n\n\n\n\n\n\nCreating owin object\nThe code chunk below is used to covert the SpatialPolygon object into owin object of spatstat\n\nTHSAB_owin &lt;- as.owin(THSAB_sf)\n\n\n\nRescalling KDE values\nwe will extract childcare events that are located within the review region and re-scale the unit of measurement from meter to kilometer by using the code chunk below.\n\naccident_data_owin_ppp &lt;- accident_data_ppp[THSAB_owin]\naccident_data_owin_ppp.km &lt;- rescale.ppp(accident_data_owin_ppp, 1000, \"km\")\n\nNow, we can run density() using the resale data set and plot the output kde map. In this case I’ll be using bw.diggle() since it seems to be working best\n\nkde_accident_data_bw &lt;- density(accident_data_owin_ppp.km,\n                              sigma=bw.diggle,\n                              edge=TRUE,\n                              kernel=\"gaussian\") \nplot(kde_accident_data_bw, main = \"Fixed bandwidth\")\n\n\n\n\n\n\n\n\nTo compared the above method I’ll also be running another density using adaptive method\n\nkde_accident_data_adaptive &lt;- adaptive.density(accident_data_owin_ppp.km, method=\"kernel\")\nplot(kde_accident_data_adaptive, main = \"Adaptive bandwidth\")\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nBoth graph produce roughly the same results which highlight some of the hot zone of accidents that could happen throughout the period. The KDE shown that there are hotspots in the roads between Bangkok - Samut Prakan, Bangkok - Pathum Thani and with a lower but still significant hotspot between Bangkok - Nakhon Pathom and Bangkok - Samut Sakhon\n\n\n\n\nTesting spatial point patterns using Clark and Evans Test\n\nclarkevans.test(accident_data_ppp,\n                correction=\"none\",\n                clipregion=\"THSAB_owin\",\n                alternative=c(\"clustered\"),\n                nsim=99)\n\n\n    Clark-Evans test\n    No edge correction\n    Z-test\n\ndata:  accident_data_ppp\nR = 0.16207, p-value &lt; 2.2e-16\nalternative hypothesis: clustered (R &lt; 1)\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results, we rejected the null hypothesis that the point patterns are randomly distributed."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#second-order-spatial-point-patterns-analysis",
+    "href": "Take-home_Ex/Take-home_Ex01/Take-home_Ex01.html#second-order-spatial-point-patterns-analysis",
+    "title": "Take-home Exercise 1",
+    "section": "4.3 Second-order Spatial Point Patterns Analysis",
+    "text": "4.3 Second-order Spatial Point Patterns Analysis\n\nAnalysing Spatial Point Process Using G-Function\n\nG_CK = Gest(accident_data_ppp, correction = \"border\")\nplot(G_CK, xlim=c(0,2000))\n\n\n\n\n\n\n\n\n\n\nPerforming Complete Spatial Randomness Test Using G-Function\n\nG_CK.csr &lt;- envelope(accident_data_ppp, Gest, nsim = 999)\n\nGenerating 999 simulations of CSR  ...\n1, 2, 3, ......10.........20.........30.........40.........50.........60..\n.......70.........80.........90.........100.........110.........120.........130\n.........140.........150.........160.........170.........180.........190........\n.200.........210.........220.........230.........240.........250.........260......\n...270.........280.........290.........300.........310.........320.........330....\n.....340.........350.........360.........370.........380.........390.........400..\n.......410.........420.........430.........440.........450.........460.........470\n.........480.........490.........500.........510.........520.........530........\n.540.........550.........560.........570.........580.........590.........600......\n...610.........620.........630.........640.........650.........660.........670....\n.....680.........690.........700.........710.........720.........730.........740..\n.......750.........760.........770.........780.........790.........800.........810\n.........820.........830.........840.........850.........860.........870........\n.880.........890.........900.........910.........920.........930.........940......\n...950.........960.........970.........980.........990........\n999.\n\nDone.\n\nplot(G_CK.csr)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed. The estimated G(r) lies above the upper envelope, the estimated G(r) is statistically significant\n\n\n\n\nAnalysing Spatial Point Process Using F-Function\n\nF_CK = Fest(accident_data_ppp)\nplot(F_CK)\n\n\n\n\n\n\n\n\n\n\nPerforming Complete Spatial Randomness Test Using F-Function\n\nF_CK.csr &lt;- envelope(accident_data_ppp, Fest, nsim = 999)\n\nGenerating 999 simulations of CSR  ...\n1, 2, 3, ......10.........20.........30.........40.........50.........60..\n.......70.........80.........90.........100.........110.........120.........130\n.........140.........150.........160.........170.........180.........190........\n.200.........210.........220.........230.........240.........250.........260......\n...270.........280.........290.........300.........310.........320.........330....\n.....340.........350.........360.........370.........380.........390.........400..\n.......410.........420.........430.........440.........450.........460.........470\n.........480.........490.........500.........510.........520.........530........\n.540.........550.........560.........570.........580.........590.........600......\n...610.........620.........630.........640.........650.........660.........670....\n.....680.........690.........700.........710.........720.........730.........740..\n.......750.........760.........770.........780.........790.........800.........810\n.........820.........830.........840.........850.........860.........870........\n.880.........890.........900.........910.........920.........930.........940......\n...950.........960.........970.........980.........990........\n999.\n\nDone.\n\nplot(F_CK.csr)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nNote\n\n\n\nFrom the test results it seems likely that the null hypothesis is rejected and distribution of accidents at Bangkok Metropolitan Region BMR is not randomly distributed"
   }
 ]
