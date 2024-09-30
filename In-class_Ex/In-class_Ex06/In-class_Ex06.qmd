@@ -12,3 +12,171 @@ execute:
 ---
 
 # 1. Getting started
+
+Installing and Loading R packages using the usual `p_load()`
+
+```{r}
+pacman::p_load(sf, tmap, sfdep, plotly, tidyverse)
+```
+
+# 2. The data
+
+## 2.1 Main
+
+```{r}
+hunan <- st_read(dsn = "data/geospatial", 
+                 layer = "Hunan")
+```
+
+```{r}
+GDPPC <- hunan2012 <- read_csv("data/aspatial/Hunan_GDPPC.csv")
+```
+
+## 2.2 Creating a time Series Cube
+
+The code chunk below `spacetime()` is used to creat an spatio-temporal cube
+
+```{r}
+GDPPC_st <- spacetime(GDPPC, 
+                      hunan,
+                      .loc_col = "County",
+                      .time_col = "Year")
+```
+
+Next `is_spacetime_cube()` is used to verify if *GDPPC_st* is actually space-time cube object
+
+```{r}
+is_spacetime_cube(GDPPC_st)
+```
+
+The **TRUE** return confirms that GDPPC_st object is indeed space-time cube object
+
+# 3. Computing Gi*
+
+## 3.1 Deriving the spatial weights
+
+The code chunk below will be used to identify neighbors and to derive an inverse distance weights.
+
+```{r}
+GDPPC_nb <- GDPPC_st %>%
+  activate("geometry") %>%
+  mutate(nb = include_self(
+    st_contiguity(geometry)),
+    wt = st_inverse_distance(nb,
+                             geometry,
+                             scale = 1,
+                             alpha = 1),
+  .before = 1) %>%
+  set_nbs("nb") %>%
+  set_wts("wt")
+```
+
+## 3.2 Computing Gi*
+
+We can use these new columns to manually calculate the local Gi* for each location. We can do this by grouping by Year and using `local_gstar_perm()` of `sfdep` package
+ 
+ 
+```{r}
+gi_stars <- GDPPC_nb %>%
+  group_by(Year) %>%
+  mutate(gi_star = local_gstar_perm(GDPPC,
+                                    nb,
+                                    wt)) %>%
+  unnest(gi_star)
+```
+
+# 4. Mann-Kendall Test
+
+## 4.1 Mann-Kendall Test on Gi
+
+The code chunk below test for Changsha county
+
+```{r}
+cbg <- gi_stars %>%
+  ungroup() %>%
+  filter(County == "Changsha") %>%
+  select(County, Year, gi_star)
+```
+
+Next plot to graph using `ggplot2` function
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+ggplot(data = cbg,
+       aes(x = Year,
+           y = gi_star)) +
+  geom_line() +
+  theme_light()
+```
+
+Below code chunk create a interactive graph using `ggplotly()` of `plotly` package
+
+```{r}
+ggplotly(ggplot(data = cbg,
+       aes(x = Year,
+           y = gi_star)) +
+  geom_line() +
+  theme_light())
+```
+
+## 4.2 printing Mann-Kendall test report
+
+```{r}
+cbg %>%
+  summarise(mk = list(
+    unclass(
+      Kendall::MannKendall(gi_star)
+    )
+  )) %>%
+  unnest_wider(mk)
+```
+
+## 4.3 Mann-Kendall test data.frame
+
+We could replicate for each location using the `group_by()` of `dplyr` package
+
+```{r}
+ehsa <- gi_stars %>%
+  group_by(County) %>%
+  summarise(mk = list(unclass(
+      Kendall::MannKendall(gi_star)
+    )
+  )) %>%
+  unnest_wider(mk)
+
+head(ehsa)
+```
+# 5. Performing Emerging Hotspot Analysis
+
+```{r}
+set.seed(1234)
+ehsa <- emerging_hotspot_analysis(
+  x = GDPPC_st,
+  .var = "GDPPC",
+  k = 1,
+  nsim = 99
+)
+```
+
+```{r}
+hunan_ehsa <- hunan %>%
+  left_join(ehsa, 
+            by = join_by(County == location))
+```
+
+```{r, fig.height=9, fig.width=12, dpi=100}
+ehsa_sig <- hunan_ehsa %>%
+  filter(p_value < 0.05) %>%
+  filter(classification %in% list("sporadic hotspot",
+                                  "oscilating hotspot",
+                                  "sporadic coldspot",
+                                  "oscilating coldspot"))
+
+tmap_mode('plot')
+
+tm_shape(hunan_ehsa) +
+  tm_polygons() +
+  tm_borders(alpha = 0.5) +
+tm_shape(ehsa_sig) +
+  tm_fill("classification") +
+  tm_borders(alpha = 0.4)
+```
