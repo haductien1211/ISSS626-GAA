@@ -12,3 +12,230 @@ execute:
 ---
 
 # 1. Getting started
+
+Installing and loading packages
+```{r}
+pacman::p_load(sfdep, olsrr, corrplot, ggpubr, sf, spdep, GWmodel, tmap, tidyverse, gtsummary)
+```
+
+# 2. The data
+
+```{r}
+mpsz = st_read(dsn = "data/geospatial", layer = "MP14_SUBZONE_WEB_PL")
+```
+
+```{r}
+condo_resale = read_csv("data/aspatial/Condo_resale_2015.csv")
+```
+
+```{r}
+condo_resale.sf <- st_as_sf(condo_resale,
+                            coords = c("LONGITUDE", "LATITUDE"),
+                            crs=4326) %>%
+  st_transform(crs=3414)
+```
+
+```{r}
+condo_mlr <- lm(formula = SELLING_PRICE ~ AREA_SQM +
+                  AGE + PROX_CBD + PROX_CHILDCARE +
+                  PROX_ELDERLYCARE + PROX_URA_GROWTH_AREA +
+                  PROX_HAWKER_MARKET + PROX_KINDERGARTEN +
+                  PROX_MRT + PROX_PARK + PROX_PRIMARY_SCH +
+                  PROX_TOP_PRIMARY_SCH + PROX_SHOPPING_MALL +
+                  PROX_SUPERMARKET + PROX_BUS_STOP +
+                  NO_Of_UNITS + FAMILY_FRIENDLY +
+                  FREEHOLD + LEASEHOLD_99YR,
+                data = condo_resale.sf)
+
+
+```
+
+# 3. The analysis
+
+## 3.1 Ordinary least squares regression Model assessment
+
+```{r}
+ols_regress(condo_mlr)
+```
+
+p-value <0.05 from ANOVA results model is significant and Adj. R-Squared = 0.647
+
+## 3.2 MultiCollinearity diagnostics
+
+```{r}
+ols_vif_tol(condo_mlr)
+```
+
+:::callout-tip
+
+None of the VIF results are > 5 so none of the variable are correlated (1-5 no worries, 5-10 be concerned, >10 no go). Hence no variable elimination needed
+
+:::
+
+## 3.3 Variable selection
+
+For both Forward and Backward Stepwise once the variables are thrown out, they could not be added back in
+
+
+### Forward Stepwise regression
+
+`ols_step_forward_p()` use p-value as criteria for variable selection
+
+```{r}
+condo_fw_mlr <- ols_step_forward_p(condo_mlr,
+                                   p_val = 0.05,
+                                   details = FALSE)
+```
+
+```{r, fig.width= 18, fig.height=14, dpi=100}
+plot(condo_fw_mlr)
+```
+## 3.4 Test for non-linearity
+
+### Fit plot
+
+```{r, fig.width= 9, fig.height=7, dpi=100}
+ols_plot_resid_fit(condo_fw_mlr$model)
+```
+
+### Histogram plot
+
+```{r, fig.width= 9, fig.height=7, dpi=100}
+ols_plot_resid_hist(condo_fw_mlr$model)
+```
+
+### Test for normality
+
+```{r}
+ols_test_normality(condo_fw_mlr$model)
+```
+
+## 3.5 Test for Spatial Autocorrelation
+
+First Export the residual and save as data frame
+
+```{r}
+mlr_output <- as.data.frame(condo_fw_mlr$model$residuals) %>%
+  rename(`FW_MLR_RES` = `condo_fw_mlr$model$residuals`)
+```
+
+Second join the residual with the `condo_resale.sf` object
+
+```{r}
+condo_resale.sf <- cbind(condo_resale.sf,
+                         mlr_output$FW_MLR_RES) %>%
+  rename(`MLR_RES` = `mlr_output.FW_MLR_RES`)
+```
+
+Third use `tmap` package to display the distribution of the residuals on an interactive map
+
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz)+
+  tmap_options(check.and.fix = TRUE)+
+  tm_polygons(alpha = 0.4) +
+  tm_shape(condo_resale.sf) +
+  tm_dots("MLR_RES",
+          alpha = 0.6,
+          style = "quantile")
+
+tmap_mode("plot")
+```
+
+## 3.6 Global Moran's I test
+
+```{r}
+condo_resale.sf <- condo_resale.sf %>%
+  mutate(nb = st_knn(geometry,
+                     k = 6,
+                     longlat = FALSE),
+         wt = st_weights(nb,
+                         style = "W"),
+         .before = 1)
+```
+
+```{r}
+global_moran_perm(condo_resale.sf$MLR_RES,
+                  condo_resale.sf$nb,
+                  condo_resale.sf$wt,
+                  alternative = "two.sided",
+                  nsim = 99)
+```
+
+:::callout-tip
+
+p-value < 0.05 null hypothesis is rejected that the residuals are randomly distributed. Since Global Moran I = 0.32254 > 0 we can infer that the residuals resmble cluster distribution
+
+:::
+
+
+## 3.7 Building Fixed Bandwidth GWR Model
+
+```{r}
+bw_fixed <- bw.gwr(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD + 
+                     PROX_CHILDCARE + PROX_ELDERLYCARE  + PROX_URA_GROWTH_AREA + 
+                     PROX_MRT   + PROX_PARK + PROX_PRIMARY_SCH + 
+                     PROX_SHOPPING_MALL + PROX_BUS_STOP + NO_Of_UNITS + 
+                     FAMILY_FRIENDLY + FREEHOLD, 
+                   data=condo_resale.sf, 
+                   approach="CV", 
+                   kernel="gaussian", 
+                   adaptive=FALSE, 
+                   longlat=FALSE)
+```
+
+The results shows that the recommended bandwidth is 971.3405 meters
+
+```{r}
+gwr_fixed <- gwr.basic(formula = SELLING_PRICE ~ AREA_SQM + AGE + PROX_CBD +
+                         PROX_CHILDCARE + PROX_ELDERLYCARE  + 
+                         PROX_URA_GROWTH_AREA + PROX_MRT   + 
+                         PROX_PARK + PROX_PRIMARY_SCH + 
+                         PROX_SHOPPING_MALL + PROX_BUS_STOP + 
+                         NO_Of_UNITS + FAMILY_FRIENDLY + FREEHOLD, 
+                   data=condo_resale.sf, 
+                   bw = bw_fixed, 
+                   kernel="gaussian", 
+                   longlat=FALSE)
+```
+
+```{r}
+gwr_fixed
+```
+
+:::callout-tip
+
+Adjusted R-square value:  0.8430417, by calibrating the model, the explanatory power increased significantly
+
+:::
+
+## 3.8 Visualising GWR output
+
+```{r}
+gwr_fixed_output <- as.data.frame(gwr_fixed$SDF) %>%
+  select(-c(2:15))
+```
+
+```{r}
+gwr_sf_fixed<- cbind(condo_resale.sf,
+         gwr_fixed_output)
+```
+
+```{r}
+glimpse(gwr_sf_fixed)
+```
+```{r}
+tmap_mode("view")
+
+tm_shape(mpsz)+
+  tmap_options(check.and.fix = TRUE)+
+  tm_polygons(alpha = 0.4) +
+  tm_shape(gwr_sf_fixed) +
+  tm_dots("Local_R2",
+          alpha = 0.6,
+          style = "quantile")
+
+tmap_mode("plot")
+```
+
