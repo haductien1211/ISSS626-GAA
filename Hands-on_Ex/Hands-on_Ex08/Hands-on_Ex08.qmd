@@ -1,0 +1,32 @@
+---
+title: "Hands-on Exercise 8 Geographically Weighted Predictive Models"
+author: "Ha Duc Tien"
+date: "October 14, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+---
+
+# 1. Overview and learning outcome
+
+## 1.1 Overview
+
+Predictive modelling uses statistical learning or machine learning techniques to predict outcomes. By and large, the event one wants to predict is in the future. However, a set of known outcome and predictors (also known as variables) will be used to calibrate the predictive models.
+
+Geospatial predictive modelling is conceptually rooted in the principle that the occurrences of events being modeled are limited in distribution. When geographically referenced data are used, occurrences of events are neither uniform nor random in distribution over space. There are geospatial factors (infrastructure, sociocultural, topographic, etc.) that constrain and influence where the locations of events occur. Geospatial predictive modeling attempts to describe those constraints and influences by spatially correlating occurrences of historical geospatial locations with environmental factors that represent those constraints and influences.
+
+## 1.2 Learning outcome
+
+In this in-class exercise, you will learn how to build predictive model by using geographical random forest method. By the end of this hands-on exercise, you will acquire the skills of:
+
+-   preparing training and test data sets by using appropriate data sampling methods,
+-   calibrating predictive models by using both geospatial statistical learning and machine learning methods,
+-   comparing and selecting the best model for predicting the future outcome,
+-   predicting the future outcomes by using the best model calibrated.
+
+# 2. The Data
+
