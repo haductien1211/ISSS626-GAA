@@ -1,0 +1,13 @@
+---
+title: "Take-home Exercise 3"
+author: "Ha Duc Tien"
+date: "October 21, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+# 1. Objectives and Tasks

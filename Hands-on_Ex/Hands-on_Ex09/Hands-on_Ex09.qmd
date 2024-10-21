@@ -1,0 +1,19 @@
+---
+title: "Hands-on Exercise 9"
+author: "Ha Duc Tien"
+date: "October 21, 2024"
+date-modified: "last-modified"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  message: false
+  freeze: true
+editor: 
+  markdown: 
+    wrap: sentence
+---
+
+# 1. Overview and learning outcome
+
+## 1.1 Overview
