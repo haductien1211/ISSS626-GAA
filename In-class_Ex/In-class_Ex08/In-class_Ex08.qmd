@@ -11,110 +11,130 @@ execute:
   freeze: true
 ---
 
+# Packages
 ```{r}
-pacman::p_load(tidyverse, sf, httr, jsonlite, rvest)
+pacman::p_load(sf, spdep, GWmodel, SpatialML, 
+               tmap, rsample, Metrics, tidyverse, ggstatsplot, performance,kableExtra)
+```
+
+# The data
+```{r}
+mdata <- read_rds("data/mdata.rds")
 ```
 
 ```{r}
-resale <- read_csv("data/non-geo/resale.csv") %>%
-  filter(month >= "2023-01" & month <= "2024-09")
+set.seed(1234)
+resale_split <- initial_split(mdata, 
+                              prop = 6.5/10,)
+train_data <- training(resale_split)
+test_data <- testing(resale_split)
+```
+
+# Correlation Matrix
+```{r, fig.height=10, fig.width=12, dpi=100}
+mdata_nogeo <- mdata %>%
+  st_drop_geometry()
+
+ggstatsplot::ggcorrmat(mdata_nogeo, 2:17)
+```
+
+
+# Building a non-spactial multiple linear regression
+
+```{r}
+price_mlr <- lm(resale_price ~ floor_area_sqm +
+                  storey_order + remaining_lease_mths +
+                  PROX_CBD + PROX_ELDERLYCARE + PROX_HAWKER +
+                  PROX_MRT + PROX_PARK + PROX_MALL + 
+                  PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                  WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                  WITHIN_1KM_PRISCH,
+                data=train_data)
+
+olsrr::ols_regress(price_mlr)
+```
+
+# Multicollinearity check with VIF
+
+```{r, fig.height=6, fig.width=12, dpi=100}
+vif <- check_collinearity(price_mlr)
+kable(vif,
+      caption = "Variance Inflation Factor (VIF) Results") %>%
+  kable_styling(font_size = 18)
+
+plot(vif)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+# Predictive Modelling: SpatialML model
+
+```{r}
+coords <- st_coordinates(mdata)
+coords_train <- st_coordinates(train_data)
+coords_test <- st_coordinates(test_data)
 ```
 
 ```{r}
-resale_tidy <- resale %>%
-  mutate(address = paste(block,street_name)) %>%
-  mutate(remaining_lease_yr = as.integer(
-    str_sub(remaining_lease, 0, 2)))%>%
-  mutate(remaining_lease_mth = as.integer(
-    str_sub(remaining_lease, 9, 11)))
+train_data_nogeom <- train_data %>%
+  st_drop_geometry()
 ```
 
 ```{r}
-resale_selected <- resale_tidy %>%
-  filter(month == "2024-09")
+set.seed(1234)
+rf <- ranger(resale_price ~ floor_area_sqm + storey_order + 
+               remaining_lease_mths + PROX_CBD + PROX_ELDERLYCARE + 
+               PROX_HAWKER + PROX_MRT + PROX_PARK + PROX_MALL + 
+               PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+               WITHIN_350M_CHILDCARE + WITHIN_350M_BUS + 
+               WITHIN_1KM_PRISCH,
+             data=train_data_nogeom)
+rf
 ```
 
 ```{r}
-add_list <- sort(unique(resale_selected$address))
+#| eval: false
+set.seed(1234)
+gwRF_adaptive <- grf(formula = resale_price ~ floor_area_sqm + storey_order +
+                       remaining_lease_mths + PROX_CBD + PROX_ELDERLYCARE +
+                       PROX_HAWKER + PROX_MRT + PROX_PARK + PROX_MALL +
+                       PROX_SUPERMARKET + WITHIN_350M_KINDERGARTEN +
+                       WITHIN_350M_CHILDCARE + WITHIN_350M_BUS +
+                       WITHIN_1KM_PRISCH,
+                     dframe=train_data_nogeom, 
+                     bw=55,
+                     kernel="adaptive",
+                     coords=coords_train)
+```
+```{r}
+#| eval: false
+write_rds(gwRF_adaptive, "data/gwRF_adaptive.rds")
 ```
 
 ```{r}
-get_coords <- function(add_list){
-  
-  # Create a data frame to store all retrieved coordinates
-  postal_coords <- data.frame()
-    
-  for (i in add_list){
-    #print(i)
-
-    r <- GET('https://www.onemap.gov.sg/api/common/elastic/search?',
-           query=list(searchVal=i,
-                     returnGeom='Y',
-                     getAddrDetails='Y'))
-    data <- fromJSON(rawToChar(r$content))
-    found <- data$found
-    res <- data$results
-    
-    # Create a new data frame for each address
-    new_row <- data.frame()
-    
-    # If single result, append 
-    if (found == 1){
-      postal <- res$POSTAL 
-      lat <- res$LATITUDE
-      lng <- res$LONGITUDE
-      new_row <- data.frame(address= i, 
-                            postal = postal, 
-                            latitude = lat, 
-                            longitude = lng)
-    }
-    
-    # If multiple results, drop NIL and append top 1
-    else if (found > 1){
-      # Remove those with NIL as postal
-      res_sub <- res[res$POSTAL != "NIL", ]
-      
-      # Set as NA first if no Postal
-      if (nrow(res_sub) == 0) {
-          new_row <- data.frame(address= i, 
-                                postal = NA, 
-                                latitude = NA, 
-                                longitude = NA)
-      }
-      
-      else{
-        top1 <- head(res_sub, n = 1)
-        postal <- top1$POSTAL 
-        lat <- top1$LATITUDE
-        lng <- top1$LONGITUDE
-        new_row <- data.frame(address= i, 
-                              postal = postal, 
-                              latitude = lat, 
-                              longitude = lng)
-      }
-    }
-
-    else {
-      new_row <- data.frame(address= i, 
-                            postal = NA, 
-                            latitude = NA, 
-                            longitude = NA)
-    }
-    
-    # Add the row
-    postal_coords <- rbind(postal_coords, new_row)
-  }
-  return(postal_coords)
-}
+#| eval: false
+gwRF_adaptive <- read_rds("data/gwRF_adaptive.rds")
 ```
 
 ```{r}
-#| eval: false  
-coords <- get_coords(add_list)
+test_data_nogeom <- test_data %>%
+  st_drop_geometry()
 ```
 
 ```{r}
-#| eval: false 
-write_rds(coords, "data/rds/coords.rds")
+#| eval: false
+gwRF_pred <- predict.grf(gwRF_adaptive,
+                         test_data,
+                         x.var.name="X",
+                         y.var.name="Y",
+                         local.w=1,
+                         global.w=0)
 ```
 
+```{r}
+#| eval: false
+write_rds(gwRF_pred, "data/GRF_pred.rds")
+```
+
+```{r}
+#| eval: false
+gwRF_adaptive <- read_rds("data/gwRF_adaptive.rds")
+```

@@ -111,10 +111,11 @@ get_coords <- function(add_list){
 ```
 
 ```{r}
+#| eval: false  
 coords <- get_coords(add_list)
 ```
 
 ```{r}
+#| eval: false 
 write_rds(coords, "data/rds/coords.rds")
 ```
-
