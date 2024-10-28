@@ -19,8 +19,11 @@ pacman::p_load(sf, spdep, GWmodel, SpatialML,
 
 # The data
 ```{r}
-mdata <- read_rds("data/mdata.rds")
+mdata <- read_rds("data/mdata.rds") %>%
+  st_jitter(amount = 1)
 ```
+
+### `st_jitter()` move points within 1 meter to avoid overlap
 
 ```{r}
 set.seed(1234)

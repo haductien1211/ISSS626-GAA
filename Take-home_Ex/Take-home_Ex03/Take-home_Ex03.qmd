@@ -14,7 +14,7 @@ execute:
 
 
 ```{r}
-pacman::p_load(tidyverse, sf, httr, jsonlite, rvest)
+pacman::p_load(tidyverse, sf, httr, jsonlite, rvest, tmap)
 ```
 
 ```{r}
@@ -38,7 +38,10 @@ resale_selected <- resale_tidy %>%
 
 ```{r}
 add_list <- sort(unique(resale_selected$address))
+
 ```
+
+User `st_jitter()` to address overlapping points
 
 ```{r}
 get_coords <- function(add_list){
@@ -118,4 +121,41 @@ coords <- get_coords(add_list)
 ```{r}
 #| eval: false 
 write_rds(coords, "data/rds/coords.rds")
+```
+
+```{r}
+#| eval: false 
+eldercare <- st_read(dsn = "data/geo",
+                     layer = "ELDERCARE") %>%
+  st_transform(crs = 3414)
+```
+Create a buffer of 1 km around eldercare points
+
+```{r}
+#| eval: false 
+buffer_1km <- st_buffer(eldercare,
+                        dist = 1000)
+```
+
+
+```{r}
+#| eval: false 
+CHAS <- st_read(dsn = "data/geo/CHASClinics.kml") %>%
+  st_transform(crs = 3414)
+```
+
+```{r}
+#| eval: false 
+tmap_mode("view")
+tm_shape(buffer_1km) +
+  tm_polygons() +
+  tm_shape(CHAS) +
+  tm_dots()
+```
+
+The code chunk below is used to count the number of CHAS Clinics with 1km of each eldercare center
+
+```{r}
+#| eval: false 
+buffer_1km$pts_count <- lengths(st_intersects(buffer_1km, CHAS))
 ```
