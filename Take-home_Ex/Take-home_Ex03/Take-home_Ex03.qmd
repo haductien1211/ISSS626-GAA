@@ -12,6 +12,7 @@ execute:
 
 # 1. Objectives and Tasks
 
+Focus on gwr random forest use 53 trees instead of 500 trees since the sample data is big and also use 1 by 1 data, 3 room flat, 4 room flat. Could use r5r package to calculate shortest distance from a road network
 
 ```{r}
 pacman::p_load(tidyverse, sf, httr, jsonlite, rvest, tmap)

@@ -928,7 +928,7 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "About this site\nIn this website, you will find my coursework prepared for this course ISSS622 Geospatial Analytics and Applications."
+    "text": "About this site\nIn this website, you will find my coursework prepared for this course ISSS626 Geospatial Analytics and Applications."
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex01/Hands-on_Ex01.2.html",
@@ -1810,14 +1810,14 @@
     "href": "In-class_Ex/In-class_Ex09/In-class_Ex09.html",
     "title": "In-class Exercise 9",
     "section": "",
-    "text": "1. Getting started"
+    "text": "The package\n\npacman::p_load(tmap, SpatialAcc, sf, \n               ggstatsplot, reshape2,\n               tidyverse)\n\n\n\nImporting the data\n\nmpsz &lt;- st_read(dsn = \"data/geospatial\", layer = \"MP14_SUBZONE_NO_SEA_PL\")%&gt;%\n  st_transform(crs = 3414)\n\nReading layer `MP14_SUBZONE_NO_SEA_PL' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex09\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 323 features and 15 fields\nGeometry type: MULTIPOLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 15748.72 xmax: 56396.44 ymax: 50256.33\nProjected CRS: SVY21\n\n\n\nhexagons &lt;- st_read(dsn = \"data/geospatial\", layer = \"hexagons\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `hexagons' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex09\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 3125 features and 6 fields\nGeometry type: POLYGON\nDimension:     XY\nBounding box:  xmin: 2667.538 ymin: 21506.33 xmax: 50010.26 ymax: 50256.33\nProjected CRS: SVY21 / Singapore TM\n\n\n\neldercare &lt;- st_read(dsn = \"data/geospatial\", layer = \"ELDERCARE\") %&gt;%\n  st_transform(crs = 3414)\n\nReading layer `ELDERCARE' from data source \n  `C:\\Users\\tien_\\OneDrive\\SMU\\haductien1211\\ISSS626-GAA\\In-class_Ex\\In-class_Ex09\\data\\geospatial' \n  using driver `ESRI Shapefile'\nSimple feature collection with 120 features and 19 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: 14481.92 ymin: 28218.43 xmax: 41665.14 ymax: 46804.9\nProjected CRS: SVY21 / Singapore TM\n\n\n\nODMatrix &lt;- read_csv(\"data/aspatial/OD_Matrix.csv\", skip = 0)\n\n\neldercare &lt;- eldercare %&gt;%\n  select(fid, ADDRESSPOS) %&gt;%\n  mutate(capacity = 100)\n\n\nhexagons &lt;- hexagons %&gt;%\n  select(fid) %&gt;%\n  mutate(demand = 100)\n\n\ndistmat &lt;- ODMatrix %&gt;%\n  select(origin_id, destination_id, total_cost) %&gt;%\n  spread(destination_id, total_cost)%&gt;%\n  select(c(-c('origin_id')))\n\n\ndistmat_km &lt;- as.matrix(distmat/1000)\n\n\nacc_Hansen &lt;- data.frame(ac(hexagons$demand,\n                            eldercare$capacity,\n                            distmat_km, \n                            #d0 = 50,\n                            power = 2, \n                            family = \"Hansen\"))\n\n\ncolnames(acc_Hansen) &lt;- \"accHansen\"\n\nacc_Hansen &lt;- as_tibble(acc_Hansen)\n\nhexagon_Hansen &lt;- bind_cols(hexagons, acc_Hansen)\n\n\nmapex &lt;- st_bbox(hexagons)\n\n\ntmap_mode(\"plot\")\ntm_shape(hexagon_Hansen,\n         bbox = mapex) + \n  tm_fill(col = \"accHansen\",\n          n = 10,\n          style = \"quantile\",\n          border.col = \"black\",\n          border.lwd = 1) +\ntm_shape(eldercare) +\n  tm_symbols(size = 0.1) +\n  tm_layout(main.title = \"Accessibility to eldercare: Hansen method\",\n            main.title.position = \"center\",\n            main.title.size = 2,\n            legend.outside = FALSE,\n            legend.height = 0.45, \n            legend.width = 3.0,\n            legend.format = list(digits = 6),\n            legend.position = c(\"right\", \"top\"),\n            frame = TRUE) +\n  tm_compass(type=\"8star\", size = 2) +\n  tm_scale_bar(width = 0.15) +\n  tm_grid(lwd = 0.1, alpha = 0.5)\n\n\n\n\n\n\n\n\n\nhexagon_Hansen &lt;- st_join(hexagon_Hansen, mpsz, \n                          join = st_intersects)\n\n\n\nParametric test\n\nggbetweenstats(data = hexagon_Hansen,\n               x = REGION_N,\n               y = accHansen,\n               type = \"p\")\n\n\n\n\n\n\n\n\n\n\nNon-Parametric test\n\nggbetweenstats(data = hexagon_Hansen,\n               x = REGION_N,\n               y = accHansen,\n               type = \"np\")\n\n\n\n\n\n\n\n\n\n\nRobust method\n\nggbetweenstats(data = hexagon_Hansen,\n               x = REGION_N,\n               y = accHansen,\n               type = \"r\")"
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "ISSS626-GAA",
     "section": "",
-    "text": "Welcome to ISSS622 Geospatial Analytics and Applications. In this website, you will find my coursework prepared for this course."
+    "text": "Welcome to ISSS626 Geospatial Analytics and Applications. In this website, you will find my coursework prepared for this course."
   },
   {
     "objectID": "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html",

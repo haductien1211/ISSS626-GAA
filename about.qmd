@@ -4,4 +4,4 @@ title: "About"
 
 About this site
 
-In this website, you will find my coursework prepared for this course **ISSS622 Geospatial Analytics and Applications**.
+In this website, you will find my coursework prepared for this course **ISSS626 Geospatial Analytics and Applications**.
