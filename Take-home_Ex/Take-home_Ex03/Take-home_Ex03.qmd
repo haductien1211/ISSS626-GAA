@@ -44,6 +44,8 @@ add_list <- sort(unique(resale_selected$address))
 
 User `st_jitter()` to address overlapping points
 
+Get a list of shopping malls name from wikipedia then create a list
+
 ```{r}
 get_coords <- function(add_list){
   
