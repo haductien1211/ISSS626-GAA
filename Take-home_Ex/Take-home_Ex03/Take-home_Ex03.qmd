@@ -16,6 +16,7 @@ In this take-home exercise, I am required to calibrate a predictive model to pre
 
 https://isss626-ay2024-25aug.netlify.app/take-home_ex03b 
 
+The below packages are used and loaded in using the `p_load()` function of `pacman` package
 
 ```{r}
 pacman::p_load(tidyverse, sf, httr, jsonlite, tmap, SpatialAcc, 
@@ -812,7 +813,7 @@ rf <- read_rds("data/rds/rf.rds")
 rf
 ```
 
-:::
+:::callout-note
 
 This model return a OOB prediction error (MSE) of 636284892 and R squared (OOB) of 0.9184915, based on R squared alone this is a pretty good model.
 

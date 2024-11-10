@@ -367,6 +367,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>1. Objectives and Tasks and packages used</h1>
 <p>In this take-home exercise, I am required to calibrate a predictive model to predict HDB resale prices between July-September 2024 by using HDB resale transaction records in 2023. For the purpose of this take-home exercise, HDB Resale Flat Prices provided by Data.gov.sg should be used as the core data set. The study should focus on either three-room, four-room or five-room flat.</p>
 <p>https://isss626-ay2024-25aug.netlify.app/take-home_ex03b</p>
+<p>The below packages are used and loaded in using the <code>p_load()</code> function of <code>pacman</code> package</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, sf, httr, jsonlite, tmap, SpatialAcc, </span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>               spdep, GWmodel, SpatialML, rsample, Metrics, kableExtra,</span>
@@ -1446,9 +1447,19 @@ OOB prediction error (MSE):       633848167
 R squared (OOB):                  0.9188036 </code></pre>
 </div>
 </div>
-<p>:::</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
 <p>This model return a OOB prediction error (MSE) of 636284892 and R squared (OOB) of 0.9184915, based on R squared alone this is a pretty good model.</p>
-<p>:::</p>
+</div>
+</div>
 <p>Next I will attempt to calibrate this model using the <code>bw_adaptive</code> of 38 calculated previously and using the <code>grf()</code> of <code>SpacialML</code> package. This would fit a local version of the Random Forest algorithm, accounting for spatial non-stationarity</p>
 <p>The code chunk below show the code for this.</p>
 <div class="cell">
