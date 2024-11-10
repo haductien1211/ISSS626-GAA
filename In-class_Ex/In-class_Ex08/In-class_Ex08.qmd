@@ -14,7 +14,7 @@ execute:
 # Packages
 ```{r}
 pacman::p_load(sf, spdep, GWmodel, SpatialML, 
-               tmap, rsample, Metrics, tidyverse, ggstatsplot, performance,kableExtra)
+               tmap, rsample, Metrics, tidyverse, ggstatsplot, performance, kableExtra)
 ```
 
 # The data
